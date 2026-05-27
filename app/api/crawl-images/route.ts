@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as cheerio from 'cheerio';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,18 +28,23 @@ export async function POST(request: NextRequest) {
     }
 
     const html = await response.text();
-    const $ = cheerio.load(html);
 
     const images: { src: string; alt: string }[] = [];
     const seen = new Set<string>();
 
-    // Find all img tags
-    $('img').each((_, element) => {
-      const src = $(element).attr('src');
-      const alt = $(element).attr('alt') || '';
+    // Simple regex to find img tags
+    const imgRegex = /<img[^>]+src\s*=\s*["']([^"']+)["'][^>]*>/gi;
+    const altRegex = /alt\s*=\s*["']([^"']*)["']/i;
 
-      if (src && !seen.has(src)) {
+    let match;
+    while ((match = imgRegex.exec(html)) !== null) {
+      const src = match[1];
+      if (!seen.has(src)) {
         seen.add(src);
+        // Extract alt text
+        const altMatch = match[0].match(altRegex);
+        const alt = altMatch ? altMatch[1] : '';
+
         // Convert relative URLs to absolute
         let absoluteSrc = src;
         try {
@@ -50,23 +54,23 @@ export async function POST(request: NextRequest) {
         }
         images.push({ src: absoluteSrc, alt });
       }
-    });
+    }
 
     // Also check for background images in style attributes
-    $('[style*="background-image"]').each((_, element) => {
-      const style = $(element).attr('style') || '';
-      const match = style.match(/url\(['"]?([^'")\s]+)['"]?\)/);
-      if (match && match[1] && !seen.has(match[1])) {
-        seen.add(match[1]);
-        let absoluteSrc = match[1];
+    const bgRegex = /style\s*=\s*["'][^"']*background-image\s*:\s*url\s*\(\s*['"]?([^'")\s]+)['"]?\s*\)[^"']*["']/gi;
+    while ((match = bgRegex.exec(html)) !== null) {
+      const src = match[1];
+      if (!seen.has(src)) {
+        seen.add(src);
+        let absoluteSrc = src;
         try {
-          absoluteSrc = new URL(match[1], validUrl.origin).href;
+          absoluteSrc = new URL(src, validUrl.origin).href;
         } catch {
           // Keep original if conversion fails
         }
         images.push({ src: absoluteSrc, alt: '' });
       }
-    });
+    }
 
     return NextResponse.json({ images });
   } catch (error) {
