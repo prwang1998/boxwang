@@ -1,5 +1,5 @@
 import * as pdfjsLib from 'pdfjs-dist';
-import { Document, Paragraph, TextRun } from 'docx';
+import { Document, Paragraph, TextRun, Packer } from 'docx';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -77,7 +77,7 @@ export async function convertPdfToDocx(file: File): Promise<Blob> {
     ],
   });
 
-  const blob = await docx.write(doc);
+  const blob = await Packer.toBlob(doc);
   return new Blob([blob], {
     type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   });
