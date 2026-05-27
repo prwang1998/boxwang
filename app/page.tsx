@@ -6,6 +6,7 @@ import FileUpload from '@/components/FileUpload';
 import FilePreview from '@/components/FilePreview';
 import ConvertButton from '@/components/ConvertButton';
 import StatusBar from '@/components/StatusBar';
+import ImageDownload from '@/components/ImageDownload';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
 import { isDocxFile, isPdfFile, downloadBlob } from '@/lib/file-utils';
@@ -88,38 +89,52 @@ export default function Home() {
     }
   };
 
+  const renderContent = () => {
+    switch (activeItem) {
+      case 'image-download':
+        return <ImageDownload />;
+      case 'format-convert':
+      default:
+        return (
+          <>
+            <h1 className="text-3xl font-bold mb-8">文档格式转换</h1>
+
+            <div className="max-w-4xl mx-auto space-y-6">
+              <FileUpload onFileSelect={handleFileSelect} disabled={state.status === 'converting'} />
+
+              {state.file && (
+                <FilePreview file={state.file} previewHtml={state.previewHtml} />
+              )}
+
+              {state.file && (
+                <div className="flex gap-4 justify-center">
+                  <ConvertButton
+                    direction="docx-to-pdf"
+                    onClick={() => handleConvert('docx-to-pdf')}
+                    disabled={!state.file || state.status !== 'idle'}
+                    loading={state.status === 'converting'}
+                  />
+                  <ConvertButton
+                    direction="pdf-to-docx"
+                    onClick={() => handleConvert('pdf-to-docx')}
+                    disabled={!state.file || state.status !== 'idle'}
+                    loading={state.status === 'converting'}
+                  />
+                </div>
+              )}
+
+              <StatusBar status={state.status} errorMessage={state.errorMessage} />
+            </div>
+          </>
+        );
+    }
+  };
+
   return (
     <div className="flex min-h-screen">
       <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
       <main className="flex-1 p-8">
-        <h1 className="text-3xl font-bold mb-8">文档格式转换</h1>
-
-        <div className="max-w-4xl mx-auto space-y-6">
-          <FileUpload onFileSelect={handleFileSelect} disabled={state.status === 'converting'} />
-
-          {state.file && (
-            <FilePreview file={state.file} previewHtml={state.previewHtml} />
-          )}
-
-          {state.file && (
-            <div className="flex gap-4 justify-center">
-              <ConvertButton
-                direction="docx-to-pdf"
-                onClick={() => handleConvert('docx-to-pdf')}
-                disabled={!state.file || state.status !== 'idle'}
-                loading={state.status === 'converting'}
-              />
-              <ConvertButton
-                direction="pdf-to-docx"
-                onClick={() => handleConvert('pdf-to-docx')}
-                disabled={!state.file || state.status !== 'idle'}
-                loading={state.status === 'converting'}
-              />
-            </div>
-          )}
-
-          <StatusBar status={state.status} errorMessage={state.errorMessage} />
-        </div>
+        {renderContent()}
       </main>
     </div>
   );
