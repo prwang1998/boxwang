@@ -39,7 +39,8 @@ export async function convertDocxToPdf(file: File): Promise<Blob> {
     });
 
     const pdfBytes = await pdfDoc.save();
-    return new Blob([pdfBytes], { type: 'application/pdf' });
+    const arrayBuffer = new Uint8Array(pdfBytes).buffer;
+    return new Blob([arrayBuffer], { type: 'application/pdf' });
   } finally {
     document.body.removeChild(container);
   }
