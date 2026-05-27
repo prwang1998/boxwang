@@ -21,6 +21,14 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    id: 'image-tools',
+    label: '图片工具',
+    icon: '🖼',
+    children: [
+      { id: 'image-download', label: '图片下载', icon: '⬇' },
+    ],
+  },
+  {
     id: 'video-tools',
     label: '视频工具',
     icon: '🎬',
