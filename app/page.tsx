@@ -7,10 +7,14 @@ import FilePreview from '@/components/FilePreview';
 import ConvertButton from '@/components/ConvertButton';
 import StatusBar from '@/components/StatusBar';
 import ImageDownload from '@/components/ImageDownload';
+import MusicSearch from '@/components/MusicSearch';
+import MusicList from '@/components/MusicList';
+import MusicPlayer from '@/components/MusicPlayer';
+import ParseChannelConfig from '@/components/ParseChannelConfig';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
 import { isDocxFile, isPdfFile, downloadBlob } from '@/lib/file-utils';
-import { FileInfo, FileStatus, ConvertState } from '@/types';
+import { FileInfo, FileStatus, ConvertState, Song, PlayUrl } from '@/types';
 
 export default function Home() {
   const [activeItem, setActiveItem] = useState('format-convert');
@@ -20,6 +24,13 @@ export default function Home() {
     errorMessage: '',
     previewHtml: '',
   });
+
+  // Music state
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  const [playUrl, setPlayUrl] = useState<PlayUrl | null>(null);
+  const [musicLoading, setMusicLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const handleFileSelect = async (file: File) => {
     const fileInfo: FileInfo = {
@@ -89,10 +100,65 @@ export default function Home() {
     }
   };
 
+  const handleMusicSearch = async (keyword: string, source: string) => {
+    setSearchLoading(true);
+    try {
+      const response = await fetch(`/api/music/search?keyword=${encodeURIComponent(keyword)}&source=${source}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || '搜索失败');
+      }
+
+      setSongs(data.songs || []);
+    } catch (error: any) {
+      alert(error.message || '搜索失败');
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handlePlaySong = async (song: Song) => {
+    setCurrentSong(song);
+    setMusicLoading(true);
+    try {
+      const response = await fetch(`/api/music/url?id=${song.id}&source=${song.source}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || '获取播放链接失败');
+      }
+
+      setPlayUrl(data);
+    } catch (error: any) {
+      alert(error.message || '获取播放链接失败');
+    } finally {
+      setMusicLoading(false);
+    }
+  };
+
   const renderContent = () => {
     switch (activeItem) {
       case 'image-download':
         return <ImageDownload />;
+      case 'music-listen':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">全网歌曲免费听</h2>
+            <MusicSearch onSearch={handleMusicSearch} loading={searchLoading} />
+            <MusicList songs={songs} onPlay={handlePlaySong} currentSong={currentSong} />
+            {currentSong && (
+              <MusicPlayer song={currentSong} playUrl={playUrl} loading={musicLoading} />
+            )}
+          </div>
+        );
+      case 'parse-channel-config':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">解析通道配置</h2>
+            <ParseChannelConfig />
+          </div>
+        );
       case 'format-convert':
       default:
         return (
@@ -133,7 +199,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen">
       <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 pb-32">
         {renderContent()}
       </main>
     </div>
