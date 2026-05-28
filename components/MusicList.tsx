@@ -7,10 +7,12 @@ interface MusicListProps {
   songs: Song[];
   onPlay: (song: Song) => void;
   currentSong: Song | null;
+  onPlayNext?: (song: Song) => void;
 }
 
-export default function MusicList({ songs, onPlay, currentSong }: MusicListProps) {
+export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: MusicListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
 
   const formatDuration = (seconds: number): string => {
     if (!seconds || seconds <= 0) return '';
@@ -21,6 +23,14 @@ export default function MusicList({ songs, onPlay, currentSong }: MusicListProps
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
+  };
+
+  const handlePlayNext = (e: React.MouseEvent, song: Song) => {
+    e.stopPropagation();
+    if (!onPlayNext) return;
+    onPlayNext(song);
+    setAddedIds(prev => new Set(prev).add(song.id));
+    setTimeout(() => setAddedIds(prev => { const n = new Set(prev); n.delete(song.id); return n; }), 1500);
   };
 
   if (songs.length === 0) {
@@ -65,22 +75,35 @@ export default function MusicList({ songs, onPlay, currentSong }: MusicListProps
               <p className="text-sm text-gray-500 truncate">{song.artist}</p>
             </div>
 
-            {/* Right Side Info */}
-            <div className="flex items-center gap-3 flex-shrink-0">
+            {/* Right Side */}
+            <div className="flex items-center gap-2 flex-shrink-0">
               {song.album && (
                 <span className="text-sm text-gray-400 hidden md:block max-w-[120px] truncate">{song.album}</span>
               )}
               {formatDuration(song.duration) && (
                 <span className="text-sm text-gray-400 hidden sm:block">{formatDuration(song.duration)}</span>
               )}
-              <span className="text-xs px-2 py-1 bg-gray-100 rounded whitespace-nowrap">
-                {song.source === 'kuwo' ? '酷我' : song.source === 'netease' ? '网易云' : 'MusicBox'}
-              </span>
+
+              {/* Play Next Button */}
+              {onPlayNext && (
+                <button
+                  onClick={(e) => handlePlayNext(e, song)}
+                  title="下一首播放"
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors text-sm ${
+                    addedIds.has(song.id) ? 'bg-green-100 text-green-600' : 'text-gray-400 hover:text-primary hover:bg-blue-50'
+                  }`}
+                >
+                  {addedIds.has(song.id) ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  )}
+                </button>
+              )}
+
+              {/* Play Button */}
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPlay(song);
-                }}
+                onClick={(e) => { e.stopPropagation(); onPlay(song); }}
                 className="px-4 py-1.5 bg-primary text-white rounded-full hover:bg-blue-600 transition-colors text-sm"
               >
                 播放
@@ -92,27 +115,18 @@ export default function MusicList({ songs, onPlay, currentSong }: MusicListProps
             <div className="p-4 bg-gray-50 border-t">
               <div className="flex gap-6">
                 {song.cover && (
-                  <img
-                    src={song.cover}
-                    alt={song.name}
-                    className="w-32 h-32 object-cover rounded-lg shadow-md"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
+                  <img src={song.cover} alt={song.name} className="w-32 h-32 object-cover rounded-lg shadow-md" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 )}
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-gray-800">{song.name}</h3>
                   <p className="text-gray-600 mt-1">{song.artist}</p>
-                  {song.album && (
-                    <p className="text-gray-500 text-sm mt-1">专辑: {song.album}</p>
-                  )}
-                  <button
-                    onClick={() => onPlay(song)}
-                    className="mt-4 px-6 py-2 bg-primary text-white rounded-full hover:bg-blue-600 transition-colors"
-                  >
-                    播放歌曲
-                  </button>
+                  {song.album && <p className="text-gray-500 text-sm mt-1">专辑: {song.album}</p>}
+                  <div className="flex gap-2 mt-4">
+                    <button onClick={() => onPlay(song)} className="px-6 py-2 bg-primary text-white rounded-full hover:bg-blue-600 transition-colors">播放歌曲</button>
+                    {onPlayNext && (
+                      <button onClick={() => handlePlayNext(new MouseEvent('click') as any, song)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-100 transition-colors">下一首播放</button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

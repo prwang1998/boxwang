@@ -8,11 +8,12 @@ interface PlaylistDetailProps {
   tracks: Song[];
   onPlay: (song: Song) => void;
   onPlayAll: () => void;
+  onPlayNext?: (song: Song) => void;
   currentSong: Song | null;
   onBack: () => void;
 }
 
-export default function PlaylistDetail({ name, cover, tracks, onPlay, onPlayAll, currentSong, onBack }: PlaylistDetailProps) {
+export default function PlaylistDetail({ name, cover, tracks, onPlay, onPlayAll, onPlayNext, currentSong, onBack }: PlaylistDetailProps) {
   const formatDuration = (seconds: number): string => {
     if (!seconds || seconds <= 0) return '';
     const mins = Math.floor(seconds / 60);
@@ -84,18 +85,19 @@ export default function PlaylistDetail({ name, cover, tracks, onPlay, onPlayAll,
         {/* Track List */}
         <div className="bg-black/20 backdrop-blur-sm rounded-lg overflow-hidden">
           {/* Table header */}
-          <div className="grid grid-cols-[40px_1fr_1fr_80px] gap-4 px-4 py-3 text-white/40 text-sm border-b border-white/10">
+          <div className={`grid gap-4 px-4 py-3 text-white/40 text-sm border-b border-white/10 ${onPlayNext ? 'grid-cols-[40px_1fr_1fr_80px_40px]' : 'grid-cols-[40px_1fr_1fr_80px]'}`}>
             <span>#</span>
             <span>歌曲</span>
             <span className="hidden md:block">专辑</span>
             <span className="text-right">时长</span>
+            {onPlayNext && <span></span>}
           </div>
 
           {/* Tracks */}
           {tracks.map((song, index) => (
             <div
               key={song.id}
-              className={`grid grid-cols-[40px_1fr_1fr_80px] gap-4 px-4 py-3 items-center cursor-pointer transition-colors group ${
+              className={`grid gap-4 px-4 py-3 items-center cursor-pointer transition-colors group ${onPlayNext ? 'grid-cols-[40px_1fr_1fr_80px_40px]' : 'grid-cols-[40px_1fr_1fr_80px]'} ${
                 currentSong?.id === song.id
                   ? 'bg-white/20 text-white'
                   : 'text-white/80 hover:bg-white/10'
@@ -129,6 +131,17 @@ export default function PlaylistDetail({ name, cover, tracks, onPlay, onPlayAll,
 
               {/* Duration */}
               <span className="text-sm text-white/50 text-right">{formatDuration(song.duration)}</span>
+
+              {/* Play Next */}
+              {onPlayNext && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onPlayNext(song); }}
+                  title="下一首播放"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                </button>
+              )}
             </div>
           ))}
         </div>

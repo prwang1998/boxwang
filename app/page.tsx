@@ -43,6 +43,18 @@ export default function Home() {
   // Play queue state
   const [playQueue, setPlayQueue] = useState<Song[]>([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
+  const [playMode, setPlayMode] = useState<'sequential' | 'shuffle' | 'loop' | 'single'>('sequential');
+
+  const handleAddPlayNext = (song: Song) => {
+    setPlayQueue(prev => {
+      const exists = prev.find(s => s.id === song.id);
+      if (exists) return prev;
+      const insertAt = currentIndex >= 0 ? currentIndex + 1 : 0;
+      const next = [...prev];
+      next.splice(insertAt, 0, song);
+      return next;
+    });
+  };
 
   // Load MUSIC_U from localStorage on mount
   useEffect(() => {
@@ -351,7 +363,7 @@ export default function Home() {
                 {!searchLoading && songs.length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold mb-3">歌曲</h3>
-                    <MusicList songs={songs} onPlay={handlePlaySong} currentSong={currentSong} />
+                    <MusicList songs={songs} onPlay={handlePlaySong} currentSong={currentSong} onPlayNext={handleAddPlayNext} />
                   </div>
                 )}
 
@@ -372,6 +384,7 @@ export default function Home() {
                 tracks={selectedPlaylist.tracks}
                 onPlay={handlePlaySong}
                 onPlayAll={handlePlayAll}
+                onPlayNext={handleAddPlayNext}
                 currentSong={currentSong}
                 onBack={() => setSelectedPlaylist(null)}
               />
@@ -482,6 +495,8 @@ export default function Home() {
           playlist={playQueue}
           currentIndex={currentIndex}
           onPlayIndex={handlePlayIndex}
+          playMode={playMode}
+          onPlayModeChange={setPlayMode}
         />
       )}
     </div>
