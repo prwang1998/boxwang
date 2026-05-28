@@ -15,3 +15,5 @@ export interface ConvertState {
   errorMessage: string;
   previewHtml: string;
 }
+
+export * from './music';
