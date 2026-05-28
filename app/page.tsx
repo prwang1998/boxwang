@@ -15,6 +15,7 @@ import PlaylistDetail from '@/components/PlaylistDetail';
 import MusicBoxEmbed from '@/components/MusicBoxEmbed';
 import ParseChannelConfig from '@/components/ParseChannelConfig';
 import ApiTester from '@/components/ApiTester';
+import NovelReader from '@/components/NovelReader';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
 import { isDocxFile, isPdfFile, downloadBlob } from '@/lib/file-utils';
@@ -429,6 +430,8 @@ export default function Home() {
             <MusicBoxEmbed />
           </div>
         );
+      case 'novel-reader':
+        return <NovelReader />;
       case 'parse-channel-config':
         return (
           <div className="space-y-6">
