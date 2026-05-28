@@ -4,14 +4,34 @@ const MUSICBOX_API = 'https://fy-musicbox-api.mu-jie.cc';
 
 export async function searchMusicBox(keyword: string, page: number = 1): Promise<Song[]> {
   try {
-    const response = await fetch(`/api/music/musicbox?keyword=${encodeURIComponent(keyword)}&page=${page}`);
-    const data = await response.json();
+    const url = `${MUSICBOX_API}/netease/search/song/?keywords=${encodeURIComponent(keyword)}&pn=${page}&limit=20`;
 
-    if (!response.ok || !data.songs) {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://mu-jie.cc/musicBox/',
+      },
+    });
+
+    if (!response.ok) {
       return [];
     }
 
-    return data.songs;
+    const data = await response.json();
+
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    return data.map((item: any, index: number) => ({
+      id: `musicbox_${item.id || index}`,
+      name: item.name || '',
+      artist: item.artist || '',
+      album: item.album || '',
+      duration: parseInt(item.duration || '0'),
+      source: 'custom' as const,
+      cover: item.pic || '',
+    }));
   } catch {
     return [];
   }
