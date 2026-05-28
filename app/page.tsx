@@ -14,6 +14,7 @@ import PlaylistGrid from '@/components/PlaylistGrid';
 import PlaylistDetail from '@/components/PlaylistDetail';
 import MusicBoxEmbed from '@/components/MusicBoxEmbed';
 import ParseChannelConfig from '@/components/ParseChannelConfig';
+import ApiTester from '@/components/ApiTester';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
 import { isDocxFile, isPdfFile, downloadBlob } from '@/lib/file-utils';
@@ -322,6 +323,13 @@ export default function Home() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold">解析通道配置</h2>
             <ParseChannelConfig />
+          </div>
+        );
+      case 'api-tester':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">API 测试工具</h2>
+            <ApiTester />
           </div>
         );
       case 'format-convert':
