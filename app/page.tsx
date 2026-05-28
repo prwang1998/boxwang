@@ -246,6 +246,7 @@ export default function Home() {
   };
 
   const handlePlaylistClick = async (playlist: Playlist) => {
+    setShowSearch(false);
     setPlaylistLoading(true);
     try {
       const detail = await getPlaylistDetail(playlist.id);
