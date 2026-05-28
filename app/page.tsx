@@ -35,6 +35,7 @@ export default function Home() {
   const [playUrl, setPlayUrl] = useState<PlayUrl | null>(null);
   const [musicLoading, setMusicLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   // Playlist state
   const [recommendPlaylists, setRecommendPlaylists] = useState<Playlist[]>([]);
@@ -45,19 +46,21 @@ export default function Home() {
     tracks: Song[];
   } | null>(null);
   const [playlistLoading, setPlaylistLoading] = useState(false);
+  const [playlistsLoaded, setPlaylistsLoaded] = useState(false);
 
-  // Load recommend playlists
+  // Load recommend playlists when entering music page
   useEffect(() => {
-    if (activeItem === 'music-listen' && !selectedPlaylist) {
+    if (activeItem === 'music-listen' && !playlistsLoaded) {
       loadRecommendPlaylists();
     }
-  }, [activeItem]);
+  }, [activeItem, playlistsLoaded]);
 
   const loadRecommendPlaylists = async () => {
     setPlaylistLoading(true);
     try {
       const playlists = await getRecommendPlaylists(30);
       setRecommendPlaylists(playlists);
+      setPlaylistsLoaded(true);
     } catch (error) {
       console.error('Failed to load recommend playlists:', error);
     } finally {
@@ -139,7 +142,6 @@ export default function Home() {
     setSearchPlaylistsResult([]);
 
     try {
-      // Search songs
       const response = await fetch(`/api/music/search?keyword=${encodeURIComponent(keyword)}&source=${source}`);
       const data = await response.json();
 
@@ -149,7 +151,6 @@ export default function Home() {
 
       setSongs(data.songs || []);
 
-      // Also search playlists
       const playlists = await searchPlaylists(keyword);
       setSearchPlaylistsResult(playlists);
     } catch (error: any) {
@@ -198,6 +199,13 @@ export default function Home() {
     }
   };
 
+  const handleBackFromSearch = () => {
+    setShowSearch(false);
+    setSongs([]);
+    setSearchPlaylistsResult([]);
+    setSelectedPlaylist(null);
+  };
+
   const renderContent = () => {
     switch (activeItem) {
       case 'image-download':
@@ -205,17 +213,62 @@ export default function Home() {
       case 'music-listen':
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold">全网歌曲免费听</h2>
-            <MusicSearch onSearch={handleMusicSearch} loading={searchLoading} />
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">全网歌曲免费听</h2>
+              {!showSearch && !selectedPlaylist && (
+                <button
+                  onClick={() => setShowSearch(true)}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  搜索歌曲
+                </button>
+              )}
+            </div>
 
-            {playlistLoading && (
-              <div className="text-center py-4">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="mt-2 text-gray-500">加载中...</p>
+            {/* Search View */}
+            {showSearch && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleBackFromSearch}
+                    className="text-primary hover:text-blue-600 flex items-center gap-1"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    返回
+                  </button>
+                </div>
+                <MusicSearch onSearch={handleMusicSearch} loading={searchLoading} />
+
+                {searchLoading && (
+                  <div className="text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p className="mt-2 text-gray-500">搜索中...</p>
+                  </div>
+                )}
+
+                {!searchLoading && songs.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">歌曲</h3>
+                    <MusicList songs={songs} onPlay={handlePlaySong} currentSong={currentSong} />
+                  </div>
+                )}
+
+                {!searchLoading && searchPlaylistsResult.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">歌单</h3>
+                    <PlaylistGrid playlists={searchPlaylistsResult} onPlaylistClick={handlePlaylistClick} />
+                  </div>
+                )}
               </div>
             )}
 
-            {selectedPlaylist ? (
+            {/* Playlist Detail View */}
+            {selectedPlaylist && !showSearch && (
               <PlaylistDetail
                 name={selectedPlaylist.name}
                 cover={selectedPlaylist.cover}
@@ -224,36 +277,37 @@ export default function Home() {
                 currentSong={currentSong}
                 onBack={() => setSelectedPlaylist(null)}
               />
-            ) : (
+            )}
+
+            {/* Home View - Recommend Playlists */}
+            {!showSearch && !selectedPlaylist && (
               <>
-                {/* Search Results */}
-                {songs.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">歌曲</h3>
-                    <MusicList songs={songs} onPlay={handlePlaySong} currentSong={currentSong} />
+                {playlistLoading && (
+                  <div className="text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p className="mt-2 text-gray-500">加载推荐歌单...</p>
                   </div>
                 )}
 
-                {/* Search Playlist Results */}
-                {searchPlaylistsResult.length > 0 && (
+                {!playlistLoading && recommendPlaylists.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">歌单</h3>
-                    <PlaylistGrid playlists={searchPlaylistsResult} onPlaylistClick={handlePlaylistClick} />
-                  </div>
-                )}
-
-                {/* Recommend Playlists */}
-                {songs.length === 0 && searchPlaylistsResult.length === 0 && !searchLoading && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">推荐歌单</h3>
+                    <h3 className="text-lg font-semibold mb-4">推荐歌单</h3>
                     <PlaylistGrid playlists={recommendPlaylists} onPlaylistClick={handlePlaylistClick} />
                   </div>
                 )}
-              </>
-            )}
 
-            {currentSong && (
-              <MusicPlayer song={currentSong} playUrl={playUrl} loading={musicLoading} />
+                {!playlistLoading && recommendPlaylists.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <p>暂无推荐歌单</p>
+                    <button
+                      onClick={loadRecommendPlaylists}
+                      className="mt-4 text-primary hover:text-blue-600"
+                    >
+                      重新加载
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         );
@@ -310,9 +364,14 @@ export default function Home() {
   return (
     <div className="flex min-h-screen">
       <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
-      <main className="flex-1 p-8 pb-32">
+      <main className="flex-1 p-8 pb-24">
         {renderContent()}
       </main>
+
+      {/* Global Music Player - Fixed at bottom */}
+      {currentSong && activeItem === 'music-listen' && (
+        <MusicPlayer song={currentSong} playUrl={playUrl} loading={musicLoading} />
+      )}
     </div>
   );
 }

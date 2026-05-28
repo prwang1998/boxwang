@@ -4,35 +4,14 @@ const MUSICBOX_API = 'https://fy-musicbox-api.mu-jie.cc';
 
 export async function searchMusicBox(keyword: string, page: number = 1): Promise<Song[]> {
   try {
-    const response = await fetch(`${MUSICBOX_API}/netease/search/song/?keywords=${encodeURIComponent(keyword)}&pn=${page}&limit=20`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Referer': 'https://mu-jie.cc/musicBox/',
-      },
-    });
-
-    if (!response.ok) {
-      return [];
-    }
-
+    const response = await fetch(`/api/music/search?keyword=${encodeURIComponent(keyword)}&source=musicbox&page=${page}`);
     const data = await response.json();
 
-    if (!Array.isArray(data)) {
+    if (!response.ok || !data.songs) {
       return [];
     }
 
-    return data.map((item: any, index: number) => ({
-      id: `musicbox_${item.id || index}`,
-      name: item.name || '',
-      artist: item.artist || '',
-      album: item.album || '',
-      duration: parseInt(item.duration || '0'),
-      source: 'custom' as const,
-      cover: item.pic || '',
-      // Store the original URL and LRC URL for later use
-      _musicboxUrl: item.url,
-      _musicboxLrc: item.lrc,
-    }));
+    return data.songs;
   } catch {
     return [];
   }
@@ -54,7 +33,6 @@ export async function getMusicBoxUrl(musicId: string): Promise<PlayUrl> {
       throw new Error('获取播放链接失败');
     }
 
-    // The API returns a redirect URL
     const url = response.url;
 
     if (!url || url.includes('error') || url === '') {
@@ -87,8 +65,6 @@ export async function getMusicBoxLyric(musicId: string): Promise<Lyric> {
     }
 
     const text = await response.text();
-
-    // The LRC format is already in standard LRC format
     return { lyric: text };
   } catch {
     return { lyric: '' };
@@ -97,20 +73,10 @@ export async function getMusicBoxLyric(musicId: string): Promise<Lyric> {
 
 export async function getRecommendPlaylists(limit: number = 30): Promise<Playlist[]> {
   try {
-    const response = await fetch(`${MUSICBOX_API}/netease/playlist/recommend?limit=${limit}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Referer': 'https://mu-jie.cc/musicBox/',
-      },
-    });
-
-    if (!response.ok) {
-      return [];
-    }
-
+    const response = await fetch(`/api/music/playlists?type=recommend&limit=${limit}`);
     const data = await response.json();
 
-    if (!Array.isArray(data)) {
+    if (!response.ok || !Array.isArray(data)) {
       return [];
     }
 
@@ -133,18 +99,12 @@ export async function getPlaylistDetail(playlistId: string): Promise<PlaylistDet
   const id = parts[1] || playlistId;
 
   try {
-    const response = await fetch(`${MUSICBOX_API}/${server}/playlist/detail?id=${id}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Referer': 'https://mu-jie.cc/musicBox/',
-      },
-    });
+    const response = await fetch(`/api/music/playlists?type=detail&id=${id}`);
+    const data = await response.json();
 
     if (!response.ok) {
       return null;
     }
-
-    const data = await response.json();
 
     return {
       id: playlistId,
@@ -167,20 +127,10 @@ export async function getPlaylistDetail(playlistId: string): Promise<PlaylistDet
 
 export async function searchPlaylists(keyword: string): Promise<Playlist[]> {
   try {
-    const response = await fetch(`${MUSICBOX_API}/netease/search/playlist/?keywords=${encodeURIComponent(keyword)}&limit=20`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Referer': 'https://mu-jie.cc/musicBox/',
-      },
-    });
-
-    if (!response.ok) {
-      return [];
-    }
-
+    const response = await fetch(`/api/music/playlists?type=search&keyword=${encodeURIComponent(keyword)}`);
     const data = await response.json();
 
-    if (!Array.isArray(data)) {
+    if (!response.ok || !Array.isArray(data)) {
       return [];
     }
 
