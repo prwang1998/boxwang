@@ -10,6 +10,7 @@ import ImageDownload from '@/components/ImageDownload';
 import MusicSearch from '@/components/MusicSearch';
 import MusicList from '@/components/MusicList';
 import MusicPlayer from '@/components/MusicPlayer';
+import MusicBoxEmbed from '@/components/MusicBoxEmbed';
 import ParseChannelConfig from '@/components/ParseChannelConfig';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
@@ -150,6 +151,12 @@ export default function Home() {
             {currentSong && (
               <MusicPlayer song={currentSong} playUrl={playUrl} loading={musicLoading} />
             )}
+          </div>
+        );
+      case 'music-backup':
+        return (
+          <div className="space-y-6">
+            <MusicBoxEmbed />
           </div>
         );
       case 'parse-channel-config':

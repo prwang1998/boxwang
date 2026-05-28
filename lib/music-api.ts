@@ -1,6 +1,7 @@
 import { Song, PlayUrl, Lyric, SearchParams, SearchResult, UserChannel } from '@/types/music';
 import { searchKuwo, getKuwoUrl, getKuwoLyric } from './kuwo';
 import { searchNetease, getNeteaseUrl, getNeteaseLyric } from './netease';
+import { searchMusicBox, getMusicBoxUrl, getMusicBoxLyric } from './musicbox';
 import { getUserChannels } from './parse-channels';
 
 async function searchFromChannel(channel: UserChannel, keyword: string, page: number): Promise<Song[]> {
@@ -62,8 +63,13 @@ async function getUrlFromChannel(channel: UserChannel, musicId: string): Promise
 
     const data = await response.json();
 
+    const playUrl = data.url || data.data?.url || '';
+    if (!playUrl) {
+      return null;
+    }
+
     return {
-      url: data.url || data.data?.url || '',
+      url: playUrl,
       br: data.br || data.bitrate || 128,
       size: data.size || 0,
     };
@@ -98,12 +104,24 @@ async function getLyricFromChannel(channel: UserChannel, musicId: string): Promi
   }
 }
 
+// Validate if a URL is accessible
+async function validateUrl(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(5000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function searchMusic(params: SearchParams): Promise<SearchResult> {
   const { keyword, page, limit, source } = params;
 
+  // Priority 1: User custom channels
   const userChannels = getUserChannels().filter(ch => ch.enabled);
-
-  // Try user channels first
   if (userChannels.length > 0) {
     for (const channel of userChannels) {
       try {
@@ -117,7 +135,19 @@ export async function searchMusic(params: SearchParams): Promise<SearchResult> {
     }
   }
 
-  // Try Kuwo
+  // Priority 2: MusicBox API (more reliable)
+  if (source === 'all' || source === 'kuwo' || source === 'netease') {
+    try {
+      const songs = await searchMusicBox(keyword, page);
+      if (songs.length > 0) {
+        return { songs, total: songs.length, page };
+      }
+    } catch {
+      // Continue to next source
+    }
+  }
+
+  // Priority 3: Kuwo
   if (source === 'all' || source === 'kuwo') {
     try {
       const songs = await searchKuwo(keyword, page, limit);
@@ -129,7 +159,7 @@ export async function searchMusic(params: SearchParams): Promise<SearchResult> {
     }
   }
 
-  // Try Netease
+  // Priority 4: Netease
   if (source === 'all' || source === 'netease') {
     try {
       const songs = await searchNetease(keyword, page, limit);
@@ -145,15 +175,18 @@ export async function searchMusic(params: SearchParams): Promise<SearchResult> {
 }
 
 export async function getPlayUrl(musicId: string, source: string): Promise<PlayUrl> {
+  // Priority 1: User custom channels
   const userChannels = getUserChannels().filter(ch => ch.enabled);
-
-  // Try user channels first
   if (userChannels.length > 0) {
     for (const channel of userChannels) {
       try {
         const result = await getUrlFromChannel(channel, musicId);
         if (result && result.url) {
-          return result;
+          // Validate URL
+          const isValid = await validateUrl(result.url);
+          if (isValid) {
+            return result;
+          }
         }
       } catch {
         continue;
@@ -161,23 +194,55 @@ export async function getPlayUrl(musicId: string, source: string): Promise<PlayU
     }
   }
 
-  // Try Kuwo
-  if (source === 'kuwo') {
-    return await getKuwoUrl(musicId);
+  // Priority 2: MusicBox API (more reliable)
+  try {
+    const result = await getMusicBoxUrl(musicId);
+    if (result && result.url) {
+      const isValid = await validateUrl(result.url);
+      if (isValid) {
+        return result;
+      }
+    }
+  } catch {
+    // Continue to next source
   }
 
-  // Try Netease
-  if (source === 'netease') {
-    return await getNeteaseUrl(musicId);
+  // Priority 3: Kuwo
+  if (source === 'kuwo' || source === 'all') {
+    try {
+      const result = await getKuwoUrl(musicId);
+      if (result && result.url) {
+        const isValid = await validateUrl(result.url);
+        if (isValid) {
+          return result;
+        }
+      }
+    } catch {
+      // Continue to next source
+    }
+  }
+
+  // Priority 4: Netease
+  if (source === 'netease' || source === 'all') {
+    try {
+      const result = await getNeteaseUrl(musicId);
+      if (result && result.url) {
+        const isValid = await validateUrl(result.url);
+        if (isValid) {
+          return result;
+        }
+      }
+    } catch {
+      // Continue to next source
+    }
   }
 
   throw new Error('暂无可用播放资源');
 }
 
 export async function getLyric(musicId: string, source: string): Promise<Lyric> {
+  // Priority 1: User custom channels
   const userChannels = getUserChannels().filter(ch => ch.enabled);
-
-  // Try user channels first
   if (userChannels.length > 0) {
     for (const channel of userChannels) {
       try {
@@ -191,14 +256,32 @@ export async function getLyric(musicId: string, source: string): Promise<Lyric> 
     }
   }
 
-  // Try Kuwo
-  if (source === 'kuwo') {
-    return await getKuwoLyric(musicId);
+  // Priority 2: MusicBox API
+  try {
+    const result = await getMusicBoxLyric(musicId);
+    if (result && result.lyric) {
+      return result;
+    }
+  } catch {
+    // Continue to next source
   }
 
-  // Try Netease
-  if (source === 'netease') {
-    return await getNeteaseLyric(musicId);
+  // Priority 3: Kuwo
+  if (source === 'kuwo' || source === 'all') {
+    try {
+      return await getKuwoLyric(musicId);
+    } catch {
+      // Continue to next source
+    }
+  }
+
+  // Priority 4: Netease
+  if (source === 'netease' || source === 'all') {
+    try {
+      return await getNeteaseLyric(musicId);
+    } catch {
+      // Continue to next source
+    }
   }
 
   return { lyric: '' };

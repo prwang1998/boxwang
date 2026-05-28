@@ -45,6 +45,7 @@ const menuItems: MenuItem[] = [
       { id: 'audio-convert', label: '格式转换', icon: '🔄' },
       { id: 'audio-extract', label: '音频提取', icon: '📤' },
       { id: 'music-listen', label: '免费听歌', icon: '🎧' },
+      { id: 'music-backup', label: '备用听歌', icon: '🎤' },
       { id: 'parse-channel-config', label: '解析通道配置', icon: '⚙' },
     ],
   },
