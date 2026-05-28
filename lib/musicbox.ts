@@ -1,4 +1,4 @@
-import { Song, PlayUrl, Lyric } from '@/types/music';
+import { Song, PlayUrl, Lyric, Playlist, PlaylistDetail } from '@/types/music';
 
 const MUSICBOX_API = 'https://fy-musicbox-api.mu-jie.cc';
 
@@ -92,5 +92,107 @@ export async function getMusicBoxLyric(musicId: string): Promise<Lyric> {
     return { lyric: text };
   } catch {
     return { lyric: '' };
+  }
+}
+
+export async function getRecommendPlaylists(limit: number = 30): Promise<Playlist[]> {
+  try {
+    const response = await fetch(`${MUSICBOX_API}/netease/playlist/recommend?limit=${limit}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://mu-jie.cc/musicBox/',
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    return data.map((item: any) => ({
+      id: `${item.server || 'netease'}_${item.id}`,
+      name: item.name || '',
+      cover: item.coverImgUrl || '',
+      trackCount: item.trackCount || 0,
+      playCount: item.playCount || 0,
+      server: item.server || 'netease',
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function getPlaylistDetail(playlistId: string): Promise<PlaylistDetail | null> {
+  const parts = playlistId.split('_');
+  const server = parts[0] || 'netease';
+  const id = parts[1] || playlistId;
+
+  try {
+    const response = await fetch(`${MUSICBOX_API}/${server}/playlist/detail?id=${id}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://mu-jie.cc/musicBox/',
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    return {
+      id: playlistId,
+      name: data.name || '',
+      cover: data.coverImgUrl || '',
+      tracks: (data.tracks || []).map((track: any) => ({
+        id: `musicbox_${track.id}`,
+        name: track.name || '',
+        artist: track.ar?.map((a: any) => a.name).join(', ') || track.artist || '',
+        album: track.al?.name || track.album || '',
+        duration: Math.floor((track.dt || 0) / 1000),
+        source: 'custom' as const,
+        cover: track.al?.picUrl || track.pic || '',
+      })),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function searchPlaylists(keyword: string): Promise<Playlist[]> {
+  try {
+    const response = await fetch(`${MUSICBOX_API}/netease/search/playlist/?keywords=${encodeURIComponent(keyword)}&limit=20`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://mu-jie.cc/musicBox/',
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    return data.map((item: any) => ({
+      id: `${item.server || 'netease'}_${item.id}`,
+      name: item.name || '',
+      cover: item.coverImgUrl || item.cover || '',
+      trackCount: item.trackCount || 0,
+      playCount: item.playCount || 0,
+      server: item.server || 'netease',
+    }));
+  } catch {
+    return [];
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import FileUpload from '@/components/FileUpload';
 import FilePreview from '@/components/FilePreview';
@@ -10,12 +10,15 @@ import ImageDownload from '@/components/ImageDownload';
 import MusicSearch from '@/components/MusicSearch';
 import MusicList from '@/components/MusicList';
 import MusicPlayer from '@/components/MusicPlayer';
+import PlaylistGrid from '@/components/PlaylistGrid';
+import PlaylistDetail from '@/components/PlaylistDetail';
 import MusicBoxEmbed from '@/components/MusicBoxEmbed';
 import ParseChannelConfig from '@/components/ParseChannelConfig';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
 import { isDocxFile, isPdfFile, downloadBlob } from '@/lib/file-utils';
-import { FileInfo, FileStatus, ConvertState, Song, PlayUrl } from '@/types';
+import { getRecommendPlaylists, getPlaylistDetail, searchPlaylists } from '@/lib/musicbox';
+import { FileInfo, FileStatus, ConvertState, Song, PlayUrl, Playlist } from '@/types';
 
 export default function Home() {
   const [activeItem, setActiveItem] = useState('format-convert');
@@ -32,6 +35,35 @@ export default function Home() {
   const [playUrl, setPlayUrl] = useState<PlayUrl | null>(null);
   const [musicLoading, setMusicLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+
+  // Playlist state
+  const [recommendPlaylists, setRecommendPlaylists] = useState<Playlist[]>([]);
+  const [searchPlaylistsResult, setSearchPlaylistsResult] = useState<Playlist[]>([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<{
+    name: string;
+    cover: string;
+    tracks: Song[];
+  } | null>(null);
+  const [playlistLoading, setPlaylistLoading] = useState(false);
+
+  // Load recommend playlists
+  useEffect(() => {
+    if (activeItem === 'music-listen' && !selectedPlaylist) {
+      loadRecommendPlaylists();
+    }
+  }, [activeItem]);
+
+  const loadRecommendPlaylists = async () => {
+    setPlaylistLoading(true);
+    try {
+      const playlists = await getRecommendPlaylists(30);
+      setRecommendPlaylists(playlists);
+    } catch (error) {
+      console.error('Failed to load recommend playlists:', error);
+    } finally {
+      setPlaylistLoading(false);
+    }
+  };
 
   const handleFileSelect = async (file: File) => {
     const fileInfo: FileInfo = {
@@ -103,7 +135,11 @@ export default function Home() {
 
   const handleMusicSearch = async (keyword: string, source: string) => {
     setSearchLoading(true);
+    setSelectedPlaylist(null);
+    setSearchPlaylistsResult([]);
+
     try {
+      // Search songs
       const response = await fetch(`/api/music/search?keyword=${encodeURIComponent(keyword)}&source=${source}`);
       const data = await response.json();
 
@@ -112,6 +148,10 @@ export default function Home() {
       }
 
       setSongs(data.songs || []);
+
+      // Also search playlists
+      const playlists = await searchPlaylists(keyword);
+      setSearchPlaylistsResult(playlists);
     } catch (error: any) {
       alert(error.message || '搜索失败');
     } finally {
@@ -138,6 +178,26 @@ export default function Home() {
     }
   };
 
+  const handlePlaylistClick = async (playlist: Playlist) => {
+    setPlaylistLoading(true);
+    try {
+      const detail = await getPlaylistDetail(playlist.id);
+      if (detail) {
+        setSelectedPlaylist({
+          name: detail.name,
+          cover: detail.cover,
+          tracks: detail.tracks,
+        });
+      } else {
+        alert('获取歌单详情失败');
+      }
+    } catch (error) {
+      alert('获取歌单详情失败');
+    } finally {
+      setPlaylistLoading(false);
+    }
+  };
+
   const renderContent = () => {
     switch (activeItem) {
       case 'image-download':
@@ -147,7 +207,51 @@ export default function Home() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold">全网歌曲免费听</h2>
             <MusicSearch onSearch={handleMusicSearch} loading={searchLoading} />
-            <MusicList songs={songs} onPlay={handlePlaySong} currentSong={currentSong} />
+
+            {playlistLoading && (
+              <div className="text-center py-4">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="mt-2 text-gray-500">加载中...</p>
+              </div>
+            )}
+
+            {selectedPlaylist ? (
+              <PlaylistDetail
+                name={selectedPlaylist.name}
+                cover={selectedPlaylist.cover}
+                tracks={selectedPlaylist.tracks}
+                onPlay={handlePlaySong}
+                currentSong={currentSong}
+                onBack={() => setSelectedPlaylist(null)}
+              />
+            ) : (
+              <>
+                {/* Search Results */}
+                {songs.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">歌曲</h3>
+                    <MusicList songs={songs} onPlay={handlePlaySong} currentSong={currentSong} />
+                  </div>
+                )}
+
+                {/* Search Playlist Results */}
+                {searchPlaylistsResult.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">歌单</h3>
+                    <PlaylistGrid playlists={searchPlaylistsResult} onPlaylistClick={handlePlaylistClick} />
+                  </div>
+                )}
+
+                {/* Recommend Playlists */}
+                {songs.length === 0 && searchPlaylistsResult.length === 0 && !searchLoading && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">推荐歌单</h3>
+                    <PlaylistGrid playlists={recommendPlaylists} onPlaylistClick={handlePlaylistClick} />
+                  </div>
+                )}
+              </>
+            )}
+
             {currentSong && (
               <MusicPlayer song={currentSong} playUrl={playUrl} loading={musicLoading} />
             )}

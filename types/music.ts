@@ -39,3 +39,19 @@ export interface SearchResult {
   total: number;
   page: number;
 }
+
+export interface Playlist {
+  id: string;
+  name: string;
+  cover: string;
+  trackCount: number;
+  playCount: number;
+  server: string;
+}
+
+export interface PlaylistDetail {
+  id: string;
+  name: string;
+  cover: string;
+  tracks: Song[];
+}
