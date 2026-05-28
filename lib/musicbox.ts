@@ -4,7 +4,7 @@ const MUSICBOX_API = 'https://fy-musicbox-api.mu-jie.cc';
 
 export async function searchMusicBox(keyword: string, page: number = 1): Promise<Song[]> {
   try {
-    const response = await fetch(`/api/music/search?keyword=${encodeURIComponent(keyword)}&source=musicbox&page=${page}`);
+    const response = await fetch(`/api/music/musicbox?keyword=${encodeURIComponent(keyword)}&page=${page}`);
     const data = await response.json();
 
     if (!response.ok || !data.songs) {
