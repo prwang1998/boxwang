@@ -129,13 +129,13 @@ export async function getPlaylistDetail(playlistId: string): Promise<PlaylistDet
     return {
       id: playlistId,
       name: data.name || '',
-      cover: data.coverImgUrl || '',
+      cover: data.coverImgUrl || data.cover || '',
       tracks: (data.tracks || []).map((track: any) => ({
         id: `musicbox_${track.id}`,
         name: track.name || '',
         artist: track.ar?.map((a: any) => a.name).join(', ') || track.artist || '',
         album: track.al?.name || track.album || '',
-        duration: Math.floor((track.dt || 0) / 1000),
+        duration: Math.floor((track.dt || track.duration || 0) / 1000),
         source: 'custom' as const,
         cover: track.al?.picUrl || track.pic || '',
       })),

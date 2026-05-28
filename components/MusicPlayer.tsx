@@ -7,14 +7,18 @@ interface MusicPlayerProps {
   song: Song | null;
   playUrl: PlayUrl | null;
   loading: boolean;
+  playlist: Song[];
+  currentIndex: number;
+  onPlayIndex: (index: number) => void;
 }
 
-export default function MusicPlayer({ song, playUrl, loading }: MusicPlayerProps) {
+export default function MusicPlayer({ song, playUrl, loading, playlist, currentIndex, onPlayIndex }: MusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.8);
+  const [showPlaylist, setShowPlaylist] = useState(false);
 
   useEffect(() => {
     if (playUrl?.url && audioRef.current) {
@@ -34,7 +38,6 @@ export default function MusicPlayer({ song, playUrl, loading }: MusicPlayerProps
 
   const togglePlay = () => {
     if (!audioRef.current) return;
-
     if (isPlaying) {
       audioRef.current.pause();
     } else {
@@ -64,8 +67,23 @@ export default function MusicPlayer({ song, playUrl, loading }: MusicPlayerProps
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const vol = parseFloat(e.target.value);
-    setVolume(vol);
+    setVolume(parseFloat(e.target.value));
+  };
+
+  const handlePrev = () => {
+    if (playlist.length === 0) return;
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : playlist.length - 1;
+    onPlayIndex(prevIndex);
+  };
+
+  const handleNext = () => {
+    if (playlist.length === 0) return;
+    const nextIndex = currentIndex < playlist.length - 1 ? currentIndex + 1 : 0;
+    onPlayIndex(nextIndex);
+  };
+
+  const handleEnded = () => {
+    handleNext();
   };
 
   const formatTime = (seconds: number): string => {
@@ -74,79 +92,167 @@ export default function MusicPlayer({ song, playUrl, loading }: MusicPlayerProps
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!song) {
-    return null;
-  }
+  if (!song) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
-      <audio
-        ref={audioRef}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onEnded={() => setIsPlaying(false)}
-      />
-
-      <div className="max-w-7xl mx-auto px-4 py-3">
-        <div className="flex items-center gap-4">
-          {/* Song Info */}
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-gray-800 truncate">{song.name}</p>
-            <p className="text-sm text-gray-500 truncate">{song.artist}</p>
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={togglePlay}
-              disabled={loading}
-              className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:bg-blue-600 transition-colors disabled:bg-gray-300"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              ) : isPlaying ? (
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+    <>
+      {/* Playlist Panel */}
+      {showPlaylist && (
+        <div className="fixed inset-0 z-40" onClick={() => setShowPlaylist(false)}>
+          <div
+            className="absolute bottom-20 right-4 w-80 max-h-96 bg-white rounded-lg shadow-2xl border overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800">播放列表 ({playlist.length})</h3>
+              <button
+                onClick={() => setShowPlaylist(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-80">
+              {playlist.length === 0 ? (
+                <div className="p-4 text-center text-gray-400">暂无歌曲</div>
               ) : (
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                </svg>
+                playlist.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors ${
+                      currentIndex === index ? 'bg-blue-50 text-primary' : 'hover:bg-gray-50 text-gray-700'
+                    }`}
+                    onClick={() => {
+                      onPlayIndex(index);
+                      setShowPlaylist(false);
+                    }}
+                  >
+                    <span className="w-6 text-center text-sm text-gray-400">
+                      {currentIndex === index ? (
+                        <svg className="w-4 h-4 text-primary mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        index + 1
+                      )}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm truncate">{item.name}</p>
+                      <p className="text-xs text-gray-400 truncate">{item.artist}</p>
+                    </div>
+                  </div>
+                ))
               )}
-            </button>
+            </div>
           </div>
+        </div>
+      )}
 
-          {/* Progress */}
-          <div className="flex-1 flex items-center gap-2">
-            <span className="text-sm text-gray-500 w-12">{formatTime(currentTime)}</span>
-            <input
-              type="range"
-              min="0"
-              max={duration || 0}
-              value={currentTime}
-              onChange={handleSeek}
-              className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <span className="text-sm text-gray-500 w-12">{formatTime(duration)}</span>
-          </div>
+      {/* Player Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
+        <audio
+          ref={audioRef}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
+        />
 
-          {/* Volume */}
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
-            </svg>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={volume}
-              onChange={handleVolumeChange}
-              className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            />
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center gap-4">
+            {/* Song Info */}
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-gray-800 truncate">{song.name}</p>
+              <p className="text-sm text-gray-500 truncate">{song.artist}</p>
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center gap-2">
+              {/* Prev */}
+              <button
+                onClick={handlePrev}
+                className="w-9 h-9 rounded-full text-gray-500 hover:text-gray-800 hover:bg-gray-100 flex items-center justify-center transition-colors"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" />
+                </svg>
+              </button>
+
+              {/* Play/Pause */}
+              <button
+                onClick={togglePlay}
+                disabled={loading}
+                className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:bg-blue-600 transition-colors disabled:bg-gray-300"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                ) : isPlaying ? (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+
+              {/* Next */}
+              <button
+                onClick={handleNext}
+                className="w-9 h-9 rounded-full text-gray-500 hover:text-gray-800 hover:bg-gray-100 flex items-center justify-center transition-colors"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Progress */}
+            <div className="flex-1 flex items-center gap-2">
+              <span className="text-sm text-gray-500 w-12">{formatTime(currentTime)}</span>
+              <input
+                type="range"
+                min="0"
+                max={duration || 0}
+                value={currentTime}
+                onChange={handleSeek}
+                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <span className="text-sm text-gray-500 w-12">{formatTime(duration)}</span>
+            </div>
+
+            {/* Volume & Playlist */}
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
+              </svg>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={volume}
+                onChange={handleVolumeChange}
+                className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+
+              {/* Playlist button */}
+              <button
+                onClick={() => setShowPlaylist(!showPlaylist)}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+                  showPlaylist ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

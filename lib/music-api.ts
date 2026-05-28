@@ -5,6 +5,17 @@ import { searchMusicBox, getMusicBoxUrl, getMusicBoxLyric } from './musicbox';
 import { searchNeteaseMusic, getNeteasePlayUrl, getNeteaseLyric as getNeteaseLyricNew } from './netease-api';
 import { getUserChannels } from './parse-channels';
 
+const NETEASE_MUSIC_U_KEY = 'netease_music_u';
+
+function getNeteaseMusicU(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    return localStorage.getItem(NETEASE_MUSIC_U_KEY) || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 async function searchFromChannel(channel: UserChannel, keyword: string, page: number): Promise<Song[]> {
   if (!channel.searchUrl || !channel.enabled) {
     return [];
@@ -139,7 +150,8 @@ export async function searchMusic(params: SearchParams): Promise<SearchResult> {
   // Priority 2: Netease API (new, more reliable)
   if (source === 'all' || source === 'netease') {
     try {
-      const songs = await searchNeteaseMusic(keyword, page, limit);
+      const musicU = getNeteaseMusicU();
+      const songs = await searchNeteaseMusic(keyword, page, limit, musicU);
       if (songs.length > 0) {
         return { songs, total: songs.length, page };
       }
@@ -209,7 +221,8 @@ export async function getPlayUrl(musicId: string, source: string): Promise<PlayU
   // Priority 2: Netease API (new)
   if (musicId.startsWith('netease_')) {
     try {
-      const result = await getNeteasePlayUrl(musicId);
+      const musicU = getNeteaseMusicU();
+      const result = await getNeteasePlayUrl(musicId, 'standard', musicU);
       if (result && result.url) {
         const isValid = await validateUrl(result.url);
         if (isValid) {
@@ -286,7 +299,8 @@ export async function getLyric(musicId: string, source: string): Promise<Lyric> 
   // Priority 2: Netease API (new)
   if (musicId.startsWith('netease_')) {
     try {
-      const result = await getNeteaseLyricNew(musicId);
+      const musicU = getNeteaseMusicU();
+      const result = await getNeteaseLyricNew(musicId, musicU);
       if (result && result.lyric) {
         return result;
       }

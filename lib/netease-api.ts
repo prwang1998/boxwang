@@ -1,17 +1,41 @@
 import { Song, PlayUrl, Lyric } from '@/types/music';
 
-const NETEASE_API = '/api/netease';
+const isServer = typeof window === 'undefined';
 
-export async function searchNeteaseMusic(keyword: string, page: number = 1, limit: number = 20): Promise<Song[]> {
+export async function searchNeteaseMusic(keyword: string, page: number = 1, limit: number = 20, musicU?: string): Promise<Song[]> {
   try {
-    const response = await fetch(`${NETEASE_API}?action=search&keyword=${encodeURIComponent(keyword)}&page=${page}&limit=${limit}`);
+    if (isServer) {
+      // Server-side: call directly
+      const { searchMusic } = await import('./netease-server');
+      const offset = (page - 1) * limit;
+      const userCookies: Record<string, string> = {};
+      if (musicU) userCookies.MUSIC_U = musicU;
+      const songs = await searchMusic(keyword, limit, offset, userCookies);
+      return songs.map((item: any) => ({
+        id: `netease_${item.id}`,
+        name: item.name || '',
+        artist: item.artist || '',
+        album: item.album || '',
+        duration: item.duration || 0,
+        source: 'netease' as const,
+        cover: item.cover || '',
+      }));
+    }
+
+    // Client-side: use API route
+    let url = `/api/netease?action=search&keyword=${encodeURIComponent(keyword)}&page=${page}&limit=${limit}`;
+    if (musicU) {
+      url += `&musicU=${encodeURIComponent(musicU)}`;
+    }
+
+    const response = await fetch(url);
     const data = await response.json();
 
-    if (!response.ok || !data.songs) {
+    if (!response.ok) {
       return [];
     }
 
-    return data.songs.map((item: any) => ({
+    return (data.songs || []).map((item: any) => ({
       id: `netease_${item.id}`,
       name: item.name || '',
       artist: item.artist || '',
@@ -20,16 +44,35 @@ export async function searchNeteaseMusic(keyword: string, page: number = 1, limi
       source: 'netease' as const,
       cover: item.cover || '',
     }));
-  } catch {
+  } catch (error) {
+    console.error('Netease search error:', error);
     return [];
   }
 }
 
-export async function getNeteasePlayUrl(songId: string, quality: string = 'standard'): Promise<PlayUrl> {
+export async function getNeteasePlayUrl(songId: string, quality: string = 'standard', musicU?: string): Promise<PlayUrl> {
   const id = songId.replace('netease_', '');
 
   try {
-    const response = await fetch(`${NETEASE_API}?action=url&id=${id}&quality=${quality}`);
+    if (isServer) {
+      // Server-side: call directly
+      const { getSongUrl } = await import('./netease-server');
+      const userCookies: Record<string, string> = {};
+      if (musicU) userCookies.MUSIC_U = musicU;
+      const result = await getSongUrl(parseInt(id), quality as any, userCookies);
+      return {
+        url: result.url,
+        br: result.br || 128000,
+        size: result.size || 0,
+      };
+    }
+
+    // Client-side: use API route
+    let url = `/api/netease?action=url&id=${id}&quality=${quality}`;
+    if (musicU) {
+      url += `&musicU=${encodeURIComponent(musicU)}`;
+    }
+    const response = await fetch(url);
     const data = await response.json();
 
     if (!response.ok || !data.url) {
@@ -46,11 +89,28 @@ export async function getNeteasePlayUrl(songId: string, quality: string = 'stand
   }
 }
 
-export async function getNeteaseLyric(songId: string): Promise<Lyric> {
+export async function getNeteaseLyric(songId: string, musicU?: string): Promise<Lyric> {
   const id = songId.replace('netease_', '');
 
   try {
-    const response = await fetch(`${NETEASE_API}?action=lyric&id=${id}`);
+    if (isServer) {
+      // Server-side: call directly
+      const { getLyric } = await import('./netease-server');
+      const userCookies: Record<string, string> = {};
+      if (musicU) userCookies.MUSIC_U = musicU;
+      const result = await getLyric(parseInt(id), userCookies);
+      return {
+        lyric: result.lyric || '',
+      };
+    }
+
+    // Client-side: use API route
+    let url = `/api/netease?action=lyric&id=${id}`;
+    if (musicU) {
+      url += `&musicU=${encodeURIComponent(musicU)}`;
+    }
+
+    const response = await fetch(url);
     const data = await response.json();
 
     if (!response.ok) {

@@ -37,6 +37,31 @@ export default function Home() {
   const [musicLoading, setMusicLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showMusicSettings, setShowMusicSettings] = useState(false);
+  const [musicUInput, setMusicUInput] = useState('');
+
+  // Play queue state
+  const [playQueue, setPlayQueue] = useState<Song[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
+
+  // Load MUSIC_U from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('netease_music_u');
+      if (saved) setMusicUInput(saved);
+    } catch {}
+  }, []);
+
+  const handleSaveMusicU = () => {
+    try {
+      if (musicUInput.trim()) {
+        localStorage.setItem('netease_music_u', musicUInput.trim());
+      } else {
+        localStorage.removeItem('netease_music_u');
+      }
+      setShowMusicSettings(false);
+    } catch {}
+  };
 
   // Playlist state
   const [recommendPlaylists, setRecommendPlaylists] = useState<Playlist[]>([]);
@@ -150,7 +175,9 @@ export default function Home() {
         throw new Error(data.error || '搜索失败');
       }
 
-      setSongs(data.songs || []);
+      const results = data.songs || [];
+      setSongs(results);
+      setPlayQueue(results);
 
       const playlists = await searchPlaylists(keyword);
       setSearchPlaylistsResult(playlists);
@@ -161,23 +188,49 @@ export default function Home() {
     }
   };
 
-  const handlePlaySong = async (song: Song) => {
-    setCurrentSong(song);
-    setMusicLoading(true);
+  const fetchPlayUrl = async (song: Song): Promise<PlayUrl | null> => {
     try {
       const response = await fetch(`/api/music/url?id=${song.id}&source=${song.source}`);
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || '获取播放链接失败');
-      }
-
-      setPlayUrl(data);
+      if (!response.ok) throw new Error(data.error || '获取播放链接失败');
+      return data;
     } catch (error: any) {
       alert(error.message || '获取播放链接失败');
-    } finally {
-      setMusicLoading(false);
+      return null;
     }
+  };
+
+  const handlePlaySong = async (song: Song) => {
+    const idx = playQueue.findIndex(s => s.id === song.id);
+    if (idx >= 0) setCurrentIndex(idx);
+    setCurrentSong(song);
+    setMusicLoading(true);
+    const url = await fetchPlayUrl(song);
+    if (url) setPlayUrl(url);
+    setMusicLoading(false);
+  };
+
+  const handlePlayAll = async () => {
+    if (!selectedPlaylist || selectedPlaylist.tracks.length === 0) return;
+    setPlayQueue(selectedPlaylist.tracks);
+    setCurrentIndex(0);
+    const firstSong = selectedPlaylist.tracks[0];
+    setCurrentSong(firstSong);
+    setMusicLoading(true);
+    const url = await fetchPlayUrl(firstSong);
+    if (url) setPlayUrl(url);
+    setMusicLoading(false);
+  };
+
+  const handlePlayIndex = async (index: number) => {
+    if (index < 0 || index >= playQueue.length) return;
+    setCurrentIndex(index);
+    const song = playQueue[index];
+    setCurrentSong(song);
+    setMusicLoading(true);
+    const url = await fetchPlayUrl(song);
+    if (url) setPlayUrl(url);
+    setMusicLoading(false);
   };
 
   const handlePlaylistClick = async (playlist: Playlist) => {
@@ -216,18 +269,61 @@ export default function Home() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">全网歌曲免费听</h2>
-              {!showSearch && !selectedPlaylist && (
+              <div className="flex items-center gap-2">
+                {!showSearch && !selectedPlaylist && (
+                  <button
+                    onClick={() => setShowSearch(true)}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    搜索歌曲
+                  </button>
+                )}
                 <button
-                  onClick={() => setShowSearch(true)}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+                  onClick={() => setShowMusicSettings(!showMusicSettings)}
+                  className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  title="网易云登录设置"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  搜索歌曲
                 </button>
-              )}
+              </div>
             </div>
+
+            {/* Music Settings - MUSIC_U Cookie */}
+            {showMusicSettings && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-semibold mb-2">网易云音乐登录设置</h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  设置 MUSIC_U Cookie 可解锁VIP歌曲。请从网易云音乐网页版获取 Cookie 中的 MUSIC_U 值。
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={musicUInput}
+                    onChange={(e) => setMusicUInput(e.target.value)}
+                    placeholder="粘贴 MUSIC_U Cookie 值"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <button
+                    onClick={handleSaveMusicU}
+                    className="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    保存
+                  </button>
+                  <button
+                    onClick={() => setShowMusicSettings(false)}
+                    className="px-3 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                  >
+                    取消
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Search View */}
             {showSearch && (
@@ -275,6 +371,7 @@ export default function Home() {
                 cover={selectedPlaylist.cover}
                 tracks={selectedPlaylist.tracks}
                 onPlay={handlePlaySong}
+                onPlayAll={handlePlayAll}
                 currentSong={currentSong}
                 onBack={() => setSelectedPlaylist(null)}
               />
@@ -378,7 +475,14 @@ export default function Home() {
 
       {/* Global Music Player - Fixed at bottom */}
       {currentSong && activeItem === 'music-listen' && (
-        <MusicPlayer song={currentSong} playUrl={playUrl} loading={musicLoading} />
+        <MusicPlayer
+          song={currentSong}
+          playUrl={playUrl}
+          loading={musicLoading}
+          playlist={playQueue}
+          currentIndex={currentIndex}
+          onPlayIndex={handlePlayIndex}
+        />
       )}
     </div>
   );

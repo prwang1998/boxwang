@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         url = `${MUSICBOX_API}/netease/search/playlist/?keywords=${encodeURIComponent(keyword)}&limit=${limit}`;
         break;
       case 'detail':
-        url = `${MUSICBOX_API}/netease/playlist/detail?id=${id}`;
+        url = `${MUSICBOX_API}/meting/?server=netease&type=playlist&id=${id}`;
         break;
       default:
         return NextResponse.json({ error: '无效的请求类型' }, { status: 400 });
