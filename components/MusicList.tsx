@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Song } from '@/types/music';
 
 interface MusicListProps {
@@ -13,6 +13,14 @@ interface MusicListProps {
 export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: MusicListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const timeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+
+  // Cleanup all timeouts on unmount
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(id => clearTimeout(id));
+    };
+  }, []);
 
   const formatDuration = (seconds: number): string => {
     if (!seconds || seconds <= 0) return '';
@@ -30,58 +38,67 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
     if (!onPlayNext) return;
     onPlayNext(song);
     setAddedIds(prev => new Set(prev).add(song.id));
-    setTimeout(() => setAddedIds(prev => { const n = new Set(prev); n.delete(song.id); return n; }), 1500);
+    const timeoutId = setTimeout(() => {
+      setAddedIds(prev => { const n = new Set(prev); n.delete(song.id); return n; });
+      timeoutsRef.current.delete(timeoutId);
+    }, 1500);
+    timeoutsRef.current.add(timeoutId);
   };
 
   if (songs.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-8">
-        <p>暂无搜索结果</p>
+      <div className="text-center py-12">
+        <div className="text-3xl mb-2 opacity-20">♪</div>
+        <p className="text-obsidian-100 text-sm">暂无搜索结果</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
-      {songs.map((song) => (
-        <div key={song.id} className="border rounded-lg overflow-hidden">
+    <div className="space-y-1.5">
+      {songs.map((song, index) => (
+        <div
+          key={song.id}
+          className="rounded-xl overflow-hidden border border-white/[0.04] bg-surface/40 hover:bg-surface/60 transition-all duration-200 animate-slide-up"
+          style={{ animationDelay: `${index * 0.02}s` }}
+        >
           <div
-            className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-              currentSong?.id === song.id ? 'bg-blue-50' : ''
+            className={`flex items-center gap-4 p-3.5 cursor-pointer transition-all duration-150 ${
+              currentSong?.id === song.id ? 'bg-primary/[0.08] border-primary/20' : ''
             }`}
             onClick={() => toggleExpand(song.id)}
           >
             {/* Cover Image */}
-            <div className="w-12 h-12 flex-shrink-0">
+            <div className="w-11 h-11 flex-shrink-0 rounded-lg overflow-hidden bg-white/[0.04]">
               {song.cover ? (
                 <img
                   src={song.cover}
                   alt={song.name}
-                  className="w-12 h-12 object-cover rounded"
+                  className="w-11 h-11 object-cover"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjZTVlN2ViIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzljYTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9LjNlbSI+Tw90ZXh0Pjwvc3ZnPg==';
+                    (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjMWExYTI5Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzU1NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9LjNlbSI+TzwvdGV4dD48L3N2Zz4=';
                   }}
                 />
               ) : (
-                <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-gray-400 text-lg">♪</span>
+                <div className="w-11 h-11 flex items-center justify-center">
+                  <span className="text-obsidian-100 text-lg opacity-30">♪</span>
                 </div>
               )}
             </div>
 
             {/* Song Info */}
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-800 truncate">{song.name}</p>
-              <p className="text-sm text-gray-500 truncate">{song.artist}</p>
+              <p className={`font-medium text-sm truncate ${currentSong?.id === song.id ? 'text-primary' : 'text-obsidian-50'}`}>{song.name}</p>
+              <p className="text-xs text-obsidian-100 truncate">{song.artist}</p>
             </div>
 
             {/* Right Side */}
             <div className="flex items-center gap-2 flex-shrink-0">
               {song.album && (
-                <span className="text-sm text-gray-400 hidden md:block max-w-[120px] truncate">{song.album}</span>
+                <span className="text-xs text-obsidian-100 hidden md:block max-w-[120px] truncate">{song.album}</span>
               )}
               {formatDuration(song.duration) && (
-                <span className="text-sm text-gray-400 hidden sm:block">{formatDuration(song.duration)}</span>
+                <span className="text-xs text-obsidian-100 hidden sm:block font-mono">{formatDuration(song.duration)}</span>
               )}
 
               {/* Play Next Button */}
@@ -89,8 +106,10 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
                 <button
                   onClick={(e) => handlePlayNext(e, song)}
                   title="下一首播放"
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors text-sm ${
-                    addedIds.has(song.id) ? 'bg-green-100 text-green-600' : 'text-gray-400 hover:text-primary hover:bg-blue-50'
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 text-sm ${
+                    addedIds.has(song.id)
+                      ? 'bg-success/15 text-success'
+                      : 'text-obsidian-100 hover:text-primary hover:bg-primary/10'
                   }`}
                 >
                   {addedIds.has(song.id) ? (
@@ -104,7 +123,7 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
               {/* Play Button */}
               <button
                 onClick={(e) => { e.stopPropagation(); onPlay(song); }}
-                className="px-4 py-1.5 bg-primary text-white rounded-full hover:bg-blue-600 transition-colors text-sm"
+                className="px-4 py-1.5 bg-primary/15 text-primary border border-primary/20 rounded-lg hover:bg-primary/25 transition-all duration-200 text-xs font-medium"
               >
                 播放
               </button>
@@ -112,19 +131,24 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
           </div>
 
           {expandedId === song.id && (
-            <div className="p-4 bg-gray-50 border-t">
-              <div className="flex gap-6">
+            <div className="p-4 bg-white/[0.02] border-t border-white/[0.04] animate-fade-in">
+              <div className="flex gap-5">
                 {song.cover && (
-                  <img src={song.cover} alt={song.name} className="w-32 h-32 object-cover rounded-lg shadow-md" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <img src={song.cover} alt={song.name} className="w-28 h-28 object-cover rounded-xl shadow-lg ring-1 ring-white/[0.06]" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 )}
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-800">{song.name}</h3>
-                  <p className="text-gray-600 mt-1">{song.artist}</p>
-                  {song.album && <p className="text-gray-500 text-sm mt-1">专辑: {song.album}</p>}
+                  <h3 className="text-lg font-display font-bold text-obsidian-50">{song.name}</h3>
+                  <p className="text-obsidian-100 text-sm mt-1">{song.artist}</p>
+                  {song.album && <p className="text-obsidian-100 text-xs mt-1">专辑: {song.album}</p>}
                   <div className="flex gap-2 mt-4">
-                    <button onClick={() => onPlay(song)} className="px-6 py-2 bg-primary text-white rounded-full hover:bg-blue-600 transition-colors">播放歌曲</button>
+                    <button onClick={() => onPlay(song)} className="px-5 py-2 bg-primary text-obsidian-700 rounded-lg hover:bg-primary-hover transition-colors text-sm font-medium flex items-center gap-1.5">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                      播放歌曲
+                    </button>
                     {onPlayNext && (
-                      <button onClick={() => handlePlayNext(new MouseEvent('click') as any, song)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-100 transition-colors">下一首播放</button>
+                      <button onClick={() => handlePlayNext(new MouseEvent('click') as any, song)} className="px-4 py-2 border border-white/[0.08] text-obsidian-100 rounded-lg hover:bg-white/[0.04] hover:text-obsidian-50 transition-all text-sm">
+                        下一首播放
+                      </button>
                     )}
                   </div>
                 </div>
