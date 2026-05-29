@@ -106,11 +106,11 @@ export default function ImageDownload() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="text-2xl font-display font-bold text-obsidian-50 mb-1">图片下载</h2>
+        <h2 className="text-xl sm:text-2xl font-display font-bold text-obsidian-50 mb-1">图片下载</h2>
         <p className="text-sm text-obsidian-100">输入网址，爬取该页面下的所有图片并下载</p>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
           <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-obsidian-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -158,10 +158,10 @@ export default function ImageDownload() {
 
       {images.length > 0 && (
         <div className="space-y-4 animate-slide-up">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm text-obsidian-100">
-                找到 <span className="text-obsidian-50 font-medium">{images.length}</span> 张图片，已选择 <span className="text-primary font-medium">{getSelectedCount()}</span> 张
+                找到 <span className="text-obsidian-50 font-medium">{images.length}</span> 张，已选 <span className="text-primary font-medium">{getSelectedCount()}</span> 张
               </span>
               <button
                 onClick={selectAll}

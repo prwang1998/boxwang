@@ -141,22 +141,22 @@ export default function PlayerPage({ song, isPlaying, currentTime, duration, pla
       </div>
 
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between px-8 py-5">
-        <button onClick={onClose} className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
+      <div className="relative z-10 flex items-center justify-between px-4 md:px-8 py-3 md:py-5">
+        <button onClick={onClose} className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all">
+          <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
         </button>
-        <div className="text-center flex-1 min-w-0 px-4">
-          <p className="font-lyric font-bold text-2xl truncate">{song.name}</p>
-          <p className="font-lyric text-base text-white/50 truncate mt-1">{song.artist}</p>
+        <div className="text-center flex-1 min-w-0 px-2 md:px-4">
+          <p className="font-lyric font-bold text-lg md:text-2xl truncate">{song.name}</p>
+          <p className="font-lyric text-sm md:text-base text-white/50 truncate mt-0.5">{song.artist}</p>
         </div>
-        <div className="w-11" />
+        <div className="w-10 md:w-11" />
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 flex-1 flex overflow-hidden">
-        {/* Left: Cover */}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="relative w-72 h-72 md:w-80 md:h-80">
+      {/* Main content — mobile: vertical stack, desktop: horizontal */}
+      <div className="relative z-10 flex-1 flex flex-col md:flex-row overflow-hidden">
+        {/* Cover */}
+        <div className="flex items-center justify-center pt-2 md:pt-0 md:flex-1">
+          <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-72 md:h-72 lg:w-80 lg:h-80">
             {/* Outer ring */}
             <div className="absolute inset-0 rounded-full bg-gradient-to-b from-obsidian-600 to-obsidian-400 shadow-2xl" />
             {/* Grooves */}
@@ -184,26 +184,26 @@ export default function PlayerPage({ song, isPlaying, currentTime, duration, pla
           </div>
         </div>
 
-        {/* Right: Lyrics — single line with slow fade */}
-        <div className="flex-1 flex flex-col items-center justify-center px-8">
+        {/* Lyrics — single line with slow fade */}
+        <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-8 py-4 md:py-0">
           {loadingLyric ? (
-            <div className="flex items-center justify-center h-48">
+            <div className="flex items-center justify-center h-32 md:h-48">
               <div className="animate-spin rounded-full h-6 w-6 border-2 border-white/20 border-t-white/60"></div>
             </div>
           ) : lyrics.length === 0 ? (
-            <div className="flex items-center justify-center h-48 text-white/30 font-lyric text-sm">暂无歌词</div>
+            <div className="flex items-center justify-center h-32 md:h-48 text-white/30 font-lyric text-sm">暂无歌词</div>
           ) : (
-            <div className="w-full max-w-2xl h-48 flex items-center justify-center overflow-hidden">
+            <div className="w-full max-w-2xl h-32 md:h-48 flex items-center justify-center overflow-hidden">
               {currentLyricIndex >= 0 && lyrics[currentLyricIndex] ? (
                 <p
                   key={currentLyricIndex}
-                  className="text-4xl md:text-5xl font-lyric font-bold text-white cursor-pointer text-center leading-relaxed px-6 lyric-fade-in"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-lyric font-bold text-white cursor-pointer text-center leading-relaxed px-4 md:px-6 lyric-fade-in"
                   onClick={() => onSeek(lyrics[currentLyricIndex].time)}
                 >
                   {lyrics[currentLyricIndex].text}
                 </p>
               ) : (
-                <p className="text-4xl md:text-5xl font-lyric font-bold text-white/10 text-center">
+                <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-lyric font-bold text-white/10 text-center">
                   轻触播放，聆听旋律
                 </p>
               )}
@@ -213,37 +213,37 @@ export default function PlayerPage({ song, isPlaying, currentTime, duration, pla
       </div>
 
       {/* Bottom controls */}
-      <div className="relative z-10 px-8 pb-10 pt-4">
+      <div className="relative z-10 px-4 md:px-8 pb-6 md:pb-10 pt-3 md:pt-4">
         {/* Progress bar */}
-        <div className="flex items-center gap-4 mb-6">
-          <span className="text-xs text-white/40 w-11 text-right font-mono">{formatTime(currentTime)}</span>
+        <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+          <span className="text-[10px] md:text-xs text-white/40 w-9 md:w-11 text-right font-mono">{formatTime(currentTime)}</span>
           <input
             type="range" min="0" max={duration || 0} value={currentTime}
             onChange={e => onSeek(parseFloat(e.target.value))}
             className="flex-1 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-glow [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125"
           />
-          <span className="text-xs text-white/40 w-11 font-mono">{formatTime(duration)}</span>
+          <span className="text-[10px] md:text-xs text-white/40 w-9 md:w-11 font-mono">{formatTime(duration)}</span>
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center justify-center gap-8">
-          <button onClick={onCycleMode} title={MODE_LABELS[playMode]} className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all text-white/50 hover:text-white">
+        <div className="flex items-center justify-center gap-4 md:gap-8">
+          <button onClick={onCycleMode} title={MODE_LABELS[playMode]} className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all text-white/50 hover:text-white">
             {MODE_ICONS[playMode]}
           </button>
-          <button onClick={onPrev} className="w-14 h-14 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all">
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" /></svg>
+          <button onClick={onPrev} className="w-11 h-11 md:w-14 md:h-14 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all">
+            <svg className="w-5 h-5 md:w-7 md:h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" /></svg>
           </button>
-          <button onClick={onTogglePlay} className="w-16 h-16 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/15 backdrop-blur transition-all hover:shadow-glow active:scale-95">
+          <button onClick={onTogglePlay} className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/15 backdrop-blur transition-all hover:shadow-glow active:scale-95">
             {isPlaying ? (
-              <svg className="w-9 h-9" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+              <svg className="w-7 h-7 md:w-9 md:h-9" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
             ) : (
-              <svg className="w-9 h-9 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+              <svg className="w-7 h-7 md:w-9 md:h-9 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
             )}
           </button>
-          <button onClick={onNext} className="w-14 h-14 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all">
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" /></svg>
+          <button onClick={onNext} className="w-11 h-11 md:w-14 md:h-14 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all">
+            <svg className="w-5 h-5 md:w-7 md:h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" /></svg>
           </button>
-          <div className="w-11" />
+          <div className="w-9 md:w-11" />
         </div>
       </div>
     </div>

@@ -25,6 +25,7 @@ import { FileInfo, FileStatus, ConvertState, Song, PlayUrl, Playlist } from '@/t
 
 export default function Home() {
   const [activeItem, setActiveItem] = useState('format-convert');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [state, setState] = useState<ConvertState>({
     file: null,
     status: 'idle',
@@ -285,9 +286,9 @@ export default function Home() {
         return (
           <div className="space-y-6 animate-fade-in">
             {/* Music Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-display font-bold text-obsidian-50">全网歌曲免费听</h2>
+                <h2 className="text-xl sm:text-2xl font-display font-bold text-obsidian-50">全网歌曲免费听</h2>
                 <p className="text-sm text-obsidian-100 mt-1">多源聚合，畅听无阻</p>
               </div>
               <div className="flex items-center gap-2">
@@ -322,7 +323,7 @@ export default function Home() {
                 <p className="text-xs text-obsidian-100 mb-4 leading-relaxed">
                   设置 MUSIC_U Cookie 可解锁VIP歌曲。请从网易云音乐网页版获取 Cookie 中的 MUSIC_U 值。
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={musicUInput}
@@ -330,18 +331,20 @@ export default function Home() {
                     placeholder="粘贴 MUSIC_U Cookie 值"
                     className="flex-1 px-4 py-2.5 text-sm rounded-xl bg-obsidian border border-white/[0.06] focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
                   />
-                  <button
-                    onClick={handleSaveMusicU}
-                    className="px-5 py-2.5 bg-primary text-obsidian-700 text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors"
-                  >
-                    保存
-                  </button>
-                  <button
-                    onClick={() => setShowMusicSettings(false)}
-                    className="px-4 py-2.5 bg-surface-elevated text-obsidian-100 text-sm rounded-xl border border-white/[0.06] hover:text-obsidian-50 hover:bg-surface-hover transition-all"
-                  >
-                    取消
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSaveMusicU}
+                      className="flex-1 sm:flex-none px-5 py-2.5 bg-primary text-obsidian-700 text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors"
+                    >
+                      保存
+                    </button>
+                    <button
+                      onClick={() => setShowMusicSettings(false)}
+                      className="flex-1 sm:flex-none px-4 py-2.5 bg-surface-elevated text-obsidian-100 text-sm rounded-xl border border-white/[0.06] hover:text-obsidian-50 hover:bg-surface-hover transition-all"
+                    >
+                      取消
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -466,7 +469,7 @@ export default function Home() {
           <div className="animate-fade-in">
             {/* Hero Section */}
             <div className="mb-10">
-              <h1 className="text-3xl font-display font-bold text-obsidian-50 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-obsidian-50 mb-2">
                 文档格式转换
               </h1>
               <p className="text-obsidian-100 text-sm">上传 DOCX 或 PDF 文件，在线预览并转换格式</p>
@@ -482,7 +485,7 @@ export default function Home() {
               )}
 
               {state.file && (
-                <div className="flex gap-4 justify-center animate-slide-up">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-slide-up">
                   <ConvertButton
                     direction="docx-to-pdf"
                     onClick={() => handleConvert('docx-to-pdf')}
@@ -532,8 +535,17 @@ export default function Home() {
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/[0.02] rounded-full blur-[100px]" />
       </div>
 
-      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
-      <main className="flex-1 p-8 pb-24 relative z-10 overflow-x-hidden">
+      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <main className="flex-1 p-4 md:p-8 pt-14 md:pt-8 pb-24 relative z-10 overflow-x-hidden">
+        {/* Mobile hamburger button */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="fixed top-4 left-4 z-30 w-10 h-10 rounded-xl bg-surface/80 backdrop-blur-xl border border-white/[0.06] flex items-center justify-center text-obsidian-100 hover:text-primary transition-all md:hidden"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         {renderContent()}
       </main>
 

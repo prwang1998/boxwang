@@ -63,7 +63,7 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
           style={{ animationDelay: `${index * 0.02}s` }}
         >
           <div
-            className={`flex items-center gap-4 p-3.5 cursor-pointer transition-all duration-150 ${
+            className={`flex items-center gap-2 sm:gap-4 p-2.5 sm:p-3.5 cursor-pointer transition-all duration-150 ${
               currentSong?.id === song.id ? 'bg-primary/[0.08] border-primary/20' : ''
             }`}
             onClick={() => toggleExpand(song.id)}
@@ -101,12 +101,12 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
                 <span className="text-xs text-obsidian-100 hidden sm:block font-mono">{formatDuration(song.duration)}</span>
               )}
 
-              {/* Play Next Button */}
+              {/* Play Next Button — hidden on mobile */}
               {onPlayNext && (
                 <button
                   onClick={(e) => handlePlayNext(e, song)}
                   title="下一首播放"
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 text-sm ${
+                  className={`hidden sm:flex w-8 h-8 rounded-lg items-center justify-center transition-all duration-200 text-sm ${
                     addedIds.has(song.id)
                       ? 'bg-success/15 text-success'
                       : 'text-obsidian-100 hover:text-primary hover:bg-primary/10'
@@ -123,7 +123,7 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
               {/* Play Button */}
               <button
                 onClick={(e) => { e.stopPropagation(); onPlay(song); }}
-                className="px-4 py-1.5 bg-primary/15 text-primary border border-primary/20 rounded-lg hover:bg-primary/25 transition-all duration-200 text-xs font-medium"
+                className="px-3 sm:px-4 py-1.5 bg-primary/15 text-primary border border-primary/20 rounded-lg hover:bg-primary/25 transition-all duration-200 text-xs font-medium"
               >
                 播放
               </button>
@@ -132,7 +132,7 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
 
           {expandedId === song.id && (
             <div className="p-4 bg-white/[0.02] border-t border-white/[0.04] animate-fade-in">
-              <div className="flex gap-5">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
                 {song.cover && (
                   <img src={song.cover} alt={song.name} className="w-28 h-28 object-cover rounded-xl shadow-lg ring-1 ring-white/[0.06]" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 )}
