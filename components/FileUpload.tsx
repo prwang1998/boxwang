@@ -58,7 +58,7 @@ export default function FileUpload({ onFileSelect, disabled }: FileUploadProps) 
   return (
     <div
       className={`
-        relative rounded-2xl p-10 text-center
+        relative rounded-2xl p-6 md:p-10 text-center
         transition-all duration-300 ease-out cursor-pointer
         border-2 border-dashed
         ${disabled
@@ -85,7 +85,7 @@ export default function FileUpload({ onFileSelect, disabled }: FileUploadProps) 
       {/* Upload icon */}
       <div className="mb-5">
         <div className={`
-          inline-flex items-center justify-center w-16 h-16 rounded-2xl
+          inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-2xl
           ${isDragging ? 'bg-primary/20' : 'bg-white/[0.04]'}
           transition-all duration-300
         `}>

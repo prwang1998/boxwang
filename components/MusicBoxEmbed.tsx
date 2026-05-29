@@ -3,7 +3,7 @@
 export default function MusicBoxEmbed() {
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h3 className="text-lg font-display font-bold text-obsidian-50">备用听歌通道</h3>
           <p className="text-xs text-obsidian-100 mt-1">
@@ -22,7 +22,7 @@ export default function MusicBoxEmbed() {
           </svg>
         </a>
       </div>
-      <div className="rounded-2xl overflow-hidden border border-white/[0.06] bg-surface" style={{ height: '600px' }}>
+      <div className="rounded-2xl overflow-hidden border border-white/[0.06] bg-surface" style={{ height: 'min(600px, 70vh)' }}>
         <iframe
           src="https://mu-jie.cc/musicBox/"
           title="MusicBox 备用听歌通道"

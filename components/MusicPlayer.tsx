@@ -198,7 +198,7 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
       {showPlaylist && (
         <div className="fixed inset-0 z-40" onClick={() => setShowPlaylist(false)}>
           <div
-            className="absolute bottom-20 right-6 w-80 max-h-96 bg-surface/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/[0.06] overflow-hidden animate-scale-in"
+            className="absolute bottom-20 right-2 sm:right-6 w-[calc(100vw-1rem)] sm:w-80 max-h-96 bg-surface/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/[0.06] overflow-hidden animate-scale-in"
             onClick={e => e.stopPropagation()}
           >
             <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
@@ -241,73 +241,79 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
       {/* Player Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-surface/80 backdrop-blur-xl border-t border-white/[0.06] z-50">
         <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={handleEnded} />
-        <div className="max-w-7xl mx-auto px-6 py-3">
-          <div className="flex items-center gap-5">
-            {/* Song Info */}
-            <div
-              className={`flex items-center gap-3 w-56 min-w-0 ${onOpenPlayerPage ? 'cursor-pointer hover:bg-white/[0.04] -mx-2 px-2 py-1.5 rounded-xl transition-all' : ''}`}
-              onClick={onOpenPlayerPage}
-            >
-              {song.cover ? (
-                <img src={song.cover} alt="" className="w-11 h-11 rounded-lg object-cover flex-shrink-0 ring-1 ring-white/[0.06]" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              ) : (
-                <div className="w-11 h-11 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-obsidian-100" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z" clipRule="evenodd" /></svg>
+        <div className="max-w-7xl mx-auto px-3 md:px-6 py-2 md:py-3">
+          {/* Mobile: stacked layout */}
+          <div className="flex flex-col md:flex-row md:items-center md:gap-5">
+            {/* Top row on mobile: song info + controls */}
+            <div className="flex items-center gap-2 md:gap-5 w-full md:w-auto">
+              {/* Song Info */}
+              <div
+                className={`flex items-center gap-2.5 min-w-0 flex-1 md:flex-none md:w-56 ${onOpenPlayerPage ? 'cursor-pointer hover:bg-white/[0.04] -mx-1 px-1.5 py-1 rounded-xl transition-all' : ''}`}
+                onClick={onOpenPlayerPage}
+              >
+                {song.cover ? (
+                  <img src={song.cover} alt="" className="w-10 h-10 md:w-11 md:h-11 rounded-lg object-cover flex-shrink-0 ring-1 ring-white/[0.06]" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                ) : (
+                  <div className="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-obsidian-100" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z" clipRule="evenodd" /></svg>
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="font-medium text-obsidian-50 text-sm truncate">{song.name}</p>
+                  <p className="text-xs text-obsidian-100 truncate">{song.artist}</p>
                 </div>
-              )}
-              <div className="min-w-0">
-                <p className="font-medium text-obsidian-50 text-sm truncate">{song.name}</p>
-                <p className="text-xs text-obsidian-100 truncate">{song.artist}</p>
+              </div>
+
+              {/* Controls */}
+              <div className="flex items-center gap-0.5 md:gap-1.5">
+                <button
+                  onClick={cyclePlayMode}
+                  title={MODE_INFO[playMode].label}
+                  className={`hidden md:flex w-9 h-9 rounded-lg items-center justify-center transition-all duration-200 ${
+                    playMode === 'loop' || playMode === 'single'
+                      ? 'text-primary bg-primary/10'
+                      : 'text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04]'
+                  }`}
+                >
+                  {MODE_INFO[playMode].icon}
+                </button>
+
+                <button onClick={handlePrev} className="w-8 h-8 md:w-9 md:h-9 rounded-lg text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04] flex items-center justify-center transition-all duration-200">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" /></svg>
+                </button>
+
+                <button onClick={togglePlay} disabled={loading} className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-primary text-obsidian-700 flex items-center justify-center hover:bg-primary-hover transition-all duration-200 disabled:opacity-40 shadow-lg shadow-primary/25 hover:shadow-glow active:scale-95">
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-obsidian-700/30 border-t-obsidian-700"></div>
+                  ) : isPlaying ? (
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                  )}
+                </button>
+
+                <button onClick={handleNext} className="w-8 h-8 md:w-9 md:h-9 rounded-lg text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04] flex items-center justify-center transition-all duration-200">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" /></svg>
+                </button>
+
+                {/* Playlist button — always visible */}
+                <button onClick={() => setShowPlaylist(!showPlaylist)} className={`w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${showPlaylist ? 'bg-primary/15 text-primary' : 'text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04]'}`}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                </button>
               </div>
             </div>
 
-            {/* Controls */}
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={cyclePlayMode}
-                title={MODE_INFO[playMode].label}
-                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${
-                  playMode === 'loop' || playMode === 'single'
-                    ? 'text-primary bg-primary/10'
-                    : 'text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04]'
-                }`}
-              >
-                {MODE_INFO[playMode].icon}
-              </button>
-
-              <button onClick={handlePrev} className="w-9 h-9 rounded-lg text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04] flex items-center justify-center transition-all duration-200">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" /></svg>
-              </button>
-
-              <button onClick={togglePlay} disabled={loading} className="w-11 h-11 rounded-full bg-primary text-obsidian-700 flex items-center justify-center hover:bg-primary-hover transition-all duration-200 disabled:opacity-40 shadow-lg shadow-primary/25 hover:shadow-glow active:scale-95">
-                {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-obsidian-700/30 border-t-obsidian-700"></div>
-                ) : isPlaying ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-                )}
-              </button>
-
-              <button onClick={handleNext} className="w-9 h-9 rounded-lg text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04] flex items-center justify-center transition-all duration-200">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" /></svg>
-              </button>
-            </div>
-
-            {/* Progress */}
-            <div className="flex-1 flex items-center gap-3">
-              <span className="text-xs text-obsidian-100 w-10 text-right font-mono">{formatTime(currentTime)}</span>
+            {/* Bottom row on mobile: progress bar + volume */}
+            <div className="flex items-center gap-2 md:gap-3 md:flex-1 mt-1 md:mt-0">
+              <span className="text-[10px] md:text-xs text-obsidian-100 w-9 md:w-10 text-right font-mono">{formatTime(currentTime)}</span>
               <input type="range" min="0" max={duration || 0} value={currentTime} onChange={handleSeek} className="flex-1" />
-              <span className="text-xs text-obsidian-100 w-10 font-mono">{formatTime(duration)}</span>
-            </div>
+              <span className="text-[10px] md:text-xs text-obsidian-100 w-9 md:w-10 font-mono">{formatTime(duration)}</span>
 
-            {/* Volume & Playlist */}
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-obsidian-100" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" /></svg>
-              <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="w-20" />
-              <button onClick={() => setShowPlaylist(!showPlaylist)} className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${showPlaylist ? 'bg-primary/15 text-primary' : 'text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04]'}`}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-              </button>
+              {/* Volume — desktop only */}
+              <div className="hidden md:flex items-center gap-2 ml-2">
+                <svg className="w-4 h-4 text-obsidian-100" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" /></svg>
+                <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="w-20" />
+              </div>
             </div>
           </div>
         </div>

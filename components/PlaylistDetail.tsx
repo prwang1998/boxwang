@@ -56,19 +56,19 @@ export default function PlaylistDetail({ name, cover, tracks, onPlay, onPlayAll,
         </div>
 
         {/* Playlist Info */}
-        <div className="flex gap-6 mb-8">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6 sm:mb-8">
           {cover && (
             <img
               src={cover}
               alt={name}
-              className="w-44 h-44 object-cover rounded-2xl shadow-2xl flex-shrink-0 ring-1 ring-white/[0.08]"
+              className="w-32 h-32 sm:w-44 sm:h-44 object-cover rounded-2xl shadow-2xl flex-shrink-0 ring-1 ring-white/[0.08]"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
           )}
           <div className="flex flex-col justify-center">
-            <h2 className="text-3xl font-display font-bold text-white mb-2">{name}</h2>
+            <h2 className="text-xl sm:text-3xl font-display font-bold text-white mb-2">{name}</h2>
             <p className="text-white/50 text-sm">{tracks.length} 首歌曲</p>
             <button
               onClick={onPlayAll}
@@ -85,19 +85,19 @@ export default function PlaylistDetail({ name, cover, tracks, onPlay, onPlayAll,
         {/* Track List */}
         <div className="bg-black/20 backdrop-blur-md rounded-2xl overflow-hidden border border-white/[0.06]">
           {/* Table header */}
-          <div className={`grid gap-4 px-5 py-3 text-white/30 text-xs font-medium uppercase tracking-wider border-b border-white/[0.06] ${onPlayNext ? 'grid-cols-[40px_1fr_1fr_80px_40px]' : 'grid-cols-[40px_1fr_1fr_80px]'}`}>
+          <div className={`grid gap-2 sm:gap-4 px-3 sm:px-5 py-2 sm:py-3 text-white/30 text-xs font-medium uppercase tracking-wider border-b border-white/[0.06] ${onPlayNext ? 'grid-cols-[32px_1fr_80px_32px] sm:grid-cols-[40px_1fr_1fr_80px_40px]' : 'grid-cols-[32px_1fr_80px] sm:grid-cols-[40px_1fr_1fr_80px]'}`}>
             <span className="text-center">#</span>
             <span>歌曲</span>
             <span className="hidden md:block">专辑</span>
             <span className="text-right">时长</span>
-            {onPlayNext && <span></span>}
+            {onPlayNext && <span className="hidden sm:block"></span>}
           </div>
 
           {/* Tracks */}
           {tracks.map((song, index) => (
             <div
               key={song.id}
-              className={`grid gap-4 px-5 py-3 items-center cursor-pointer transition-all duration-150 group ${onPlayNext ? 'grid-cols-[40px_1fr_1fr_80px_40px]' : 'grid-cols-[40px_1fr_1fr_80px]'} ${
+              className={`grid gap-2 sm:gap-4 px-3 sm:px-5 py-2 sm:py-3 items-center cursor-pointer transition-all duration-150 group ${onPlayNext ? 'grid-cols-[32px_1fr_80px_32px] sm:grid-cols-[40px_1fr_1fr_80px_40px]' : 'grid-cols-[32px_1fr_80px] sm:grid-cols-[40px_1fr_1fr_80px]'} ${
                 currentSong?.id === song.id
                   ? 'bg-primary/10 text-primary'
                   : 'text-white/70 hover:bg-white/[0.06]'
@@ -132,12 +132,12 @@ export default function PlaylistDetail({ name, cover, tracks, onPlay, onPlayAll,
               {/* Duration */}
               <span className="text-xs text-white/30 text-right font-mono">{formatDuration(song.duration)}</span>
 
-              {/* Play Next */}
+              {/* Play Next — hidden on mobile */}
               {onPlayNext && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onPlayNext(song); }}
                   title="下一首播放"
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100"
+                  className="hidden sm:flex w-8 h-8 rounded-lg items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                 </button>
