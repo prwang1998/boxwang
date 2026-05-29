@@ -5,6 +5,14 @@ import { Song, PlayUrl } from '@/types/music';
 
 type PlayMode = 'sequential' | 'shuffle' | 'loop' | 'single';
 
+export interface MusicPlayerState {
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  togglePlay: () => void;
+  seek: (time: number) => void;
+}
+
 interface MusicPlayerProps {
   song: Song | null;
   playUrl: PlayUrl | null;
@@ -14,6 +22,8 @@ interface MusicPlayerProps {
   onPlayIndex: (index: number) => void;
   playMode: PlayMode;
   onPlayModeChange: (mode: PlayMode) => void;
+  onOpenPlayerPage?: () => void;
+  onStateChange?: (state: MusicPlayerState) => void;
 }
 
 const MODE_LIST: PlayMode[] = ['sequential', 'shuffle', 'loop', 'single'];
@@ -54,7 +64,7 @@ const MODE_INFO: Record<PlayMode, { label: string; icon: JSX.Element }> = {
   },
 };
 
-export default function MusicPlayer({ song, playUrl, loading, playlist, currentIndex, onPlayIndex, playMode, onPlayModeChange }: MusicPlayerProps) {
+export default function MusicPlayer({ song, playUrl, loading, playlist, currentIndex, onPlayIndex, playMode, onPlayModeChange, onOpenPlayerPage, onStateChange }: MusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -73,6 +83,18 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
+
+  const seekTo = (time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  };
+
+  // Report state to parent
+  useEffect(() => {
+    onStateChange?.({ isPlaying, currentTime, duration, togglePlay, seek: seekTo });
+  }, [isPlaying, currentTime, duration]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -203,9 +225,17 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center gap-4">
             {/* Song Info */}
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-800 truncate">{song.name}</p>
-              <p className="text-sm text-gray-500 truncate">{song.artist}</p>
+            <div
+              className={`flex items-center gap-3 flex-1 min-w-0 ${onOpenPlayerPage ? 'cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-1 rounded-lg transition-colors' : ''}`}
+              onClick={onOpenPlayerPage}
+            >
+              {song.cover && (
+                <img src={song.cover} alt="" className="w-10 h-10 rounded object-cover flex-shrink-0" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              )}
+              <div className="min-w-0">
+                <p className="font-medium text-gray-800 truncate">{song.name}</p>
+                <p className="text-sm text-gray-500 truncate">{song.artist}</p>
+              </div>
             </div>
 
             {/* Controls */}

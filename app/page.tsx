@@ -9,7 +9,8 @@ import StatusBar from '@/components/StatusBar';
 import ImageDownload from '@/components/ImageDownload';
 import MusicSearch from '@/components/MusicSearch';
 import MusicList from '@/components/MusicList';
-import MusicPlayer from '@/components/MusicPlayer';
+import MusicPlayer, { MusicPlayerState } from '@/components/MusicPlayer';
+import PlayerPage from '@/components/PlayerPage';
 import PlaylistGrid from '@/components/PlaylistGrid';
 import PlaylistDetail from '@/components/PlaylistDetail';
 import MusicBoxEmbed from '@/components/MusicBoxEmbed';
@@ -45,6 +46,8 @@ export default function Home() {
   const [playQueue, setPlayQueue] = useState<Song[]>([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [playMode, setPlayMode] = useState<'sequential' | 'shuffle' | 'loop' | 'single'>('sequential');
+  const [showPlayerPage, setShowPlayerPage] = useState(false);
+  const [playerState, setPlayerState] = useState<MusicPlayerState>({ isPlaying: false, currentTime: 0, duration: 0, togglePlay: () => {}, seek: () => {} });
 
   const handleAddPlayNext = (song: Song) => {
     setPlayQueue(prev => {
@@ -490,6 +493,32 @@ export default function Home() {
         {renderContent()}
       </main>
 
+      {/* Player Page */}
+      {showPlayerPage && currentSong && (
+        <PlayerPage
+          song={currentSong}
+          isPlaying={playerState.isPlaying}
+          currentTime={playerState.currentTime}
+          duration={playerState.duration}
+          playMode={playMode}
+          onTogglePlay={playerState.togglePlay}
+          onPrev={() => {
+            const idx = currentIndex > 0 ? currentIndex - 1 : playQueue.length - 1;
+            if (idx >= 0) handlePlayIndex(idx);
+          }}
+          onNext={() => {
+            const idx = currentIndex < playQueue.length - 1 ? currentIndex + 1 : 0;
+            if (idx >= 0) handlePlayIndex(idx);
+          }}
+          onCycleMode={() => {
+            const modes: typeof playMode[] = ['sequential', 'shuffle', 'loop', 'single'];
+            setPlayMode(modes[(modes.indexOf(playMode) + 1) % modes.length]);
+          }}
+          onSeek={(time) => playerState.seek(time)}
+          onClose={() => setShowPlayerPage(false)}
+        />
+      )}
+
       {/* Global Music Player - Fixed at bottom */}
       {currentSong && activeItem === 'music-listen' && (
         <MusicPlayer
@@ -501,6 +530,8 @@ export default function Home() {
           onPlayIndex={handlePlayIndex}
           playMode={playMode}
           onPlayModeChange={setPlayMode}
+          onOpenPlayerPage={() => setShowPlayerPage(true)}
+          onStateChange={setPlayerState}
         />
       )}
     </div>
