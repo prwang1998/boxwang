@@ -58,14 +58,14 @@ export default function FileUpload({ onFileSelect, disabled }: FileUploadProps) 
   return (
     <div
       className={`
-        relative rounded-2xl p-6 md:p-10 text-center
-        transition-all duration-300 ease-out cursor-pointer
-        border-2 border-dashed
+        relative rounded-2xl p-8 md:p-12 text-center
+        transition-all duration-500 ease-out cursor-pointer
+        group corner-accents
         ${disabled
-          ? 'border-white/[0.06] bg-surface/30 cursor-not-allowed opacity-50'
+          ? 'bg-surface/20 cursor-not-allowed opacity-50'
           : isDragging
-            ? 'border-primary bg-primary/[0.06] shadow-glow scale-[1.01]'
-            : 'border-white/[0.08] bg-surface/40 hover:border-primary/40 hover:bg-surface/60'
+            ? 'bg-primary/[0.04] scale-[1.01]'
+            : 'bg-surface/30 hover:bg-surface/50'
         }
       `}
       onDragOver={handleDragOver}
@@ -82,28 +82,79 @@ export default function FileUpload({ onFileSelect, disabled }: FileUploadProps) 
         disabled={disabled}
       />
 
-      {/* Upload icon */}
-      <div className="mb-5">
+      {/* Flowing light border effect */}
+      <div className={`
+        absolute inset-0 rounded-2xl pointer-events-none border-flow
+        transition-opacity duration-500
+        ${isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+      `} />
+
+      {/* Default border */}
+      <div className={`
+        absolute inset-0 rounded-2xl pointer-events-none border-2 border-dashed
+        transition-all duration-500
+        ${isDragging
+          ? 'border-transparent'
+          : 'border-white/[0.06] group-hover:border-transparent'
+        }
+      `} />
+
+      {/* Inner glow on hover */}
+      <div className={`
+        absolute inset-[2px] rounded-[14px] pointer-events-none
+        transition-all duration-500
+        ${isDragging
+          ? 'opacity-100'
+          : 'opacity-0 group-hover:opacity-100'
+        }
+      `}
+        style={{
+          boxShadow: 'inset 0 0 40px rgba(232, 168, 73, 0.03)'
+        }}
+      />
+
+      {/* Upload icon with enhanced glow */}
+      <div className="relative mb-6">
         <div className={`
-          inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-2xl
-          ${isDragging ? 'bg-primary/20' : 'bg-white/[0.04]'}
-          transition-all duration-300
+          inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl
+          transition-all duration-500 relative
+          ${isDragging ? 'bg-primary/15 scale-110' : 'bg-white/[0.03] group-hover:bg-primary/10 group-hover:scale-105'}
         `}>
-          <svg className={`w-7 h-7 ${isDragging ? 'text-primary' : 'text-obsidian-100'} transition-colors`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Glow effect */}
+          <div className={`
+            absolute inset-0 rounded-2xl transition-opacity duration-500
+            ${isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+          `} style={{ boxShadow: '0 0 40px rgba(232, 168, 73, 0.15), 0 0 80px rgba(232, 168, 73, 0.05)' }} />
+
+          {/* Metallic sheen */}
+          <div className="absolute inset-0 rounded-2xl metal-sheen opacity-50 pointer-events-none" />
+
+          <svg
+            className={`w-8 h-8 md:w-10 md:h-10 transition-all duration-500 ${isDragging ? 'text-primary -translate-y-1' : 'text-obsidian-100 group-hover:text-primary'}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
         </div>
       </div>
 
-      <p className="text-base font-medium text-obsidian-50 mb-1.5">
-        拖拽文件到这里
+      <p className="text-lg font-medium text-obsidian-50 mb-2 relative">
+        {isDragging ? '释放文件即可上传' : '拖拽文件到这里'}
       </p>
-      <p className="text-sm text-obsidian-100 mb-4">或 <span className="text-primary font-medium">点击选择文件</span></p>
-      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] text-xs text-obsidian-100">
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <p className="text-sm text-obsidian-100 mb-5 relative">
+        或 <span className="text-gradient font-medium">点击选择文件</span>
+      </p>
+
+      {/* File type badge */}
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.04] text-xs text-obsidian-100 relative">
+        <svg className="w-3.5 h-3.5 text-primary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        .docx / .pdf · ≤50MB
+        <span>.docx / .pdf</span>
+        <span className="w-px h-3 bg-white/[0.06]" />
+        <span>≤ 50MB</span>
       </div>
     </div>
   );

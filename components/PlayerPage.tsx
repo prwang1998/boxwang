@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Song } from '@/types/music';
 
 type PlayMode = 'sequential' | 'shuffle' | 'loop' | 'single';
+type DisplayMode = 'vinyl' | 'artist';
 
 interface PlayerPageProps {
   song: Song;
@@ -57,6 +58,7 @@ const MODE_ICONS: Record<PlayMode, JSX.Element> = {
 export default function PlayerPage({ song, isPlaying, currentTime, duration, playMode, onTogglePlay, onPrev, onNext, onCycleMode, onSeek, onClose }: PlayerPageProps) {
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
   const [loadingLyric, setLoadingLyric] = useState(false);
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('vinyl');
   const coverRef = useRef<HTMLDivElement>(null);
   const rotationRef = useRef(0);
   const animRef = useRef<number>(0);
@@ -82,7 +84,7 @@ export default function PlayerPage({ song, isPlaying, currentTime, duration, pla
     return () => { cancelled = true; };
   }, [song.id, song.source]);
 
-  // Cover rotation — direct DOM manipulation, no setState
+  // Cover rotation
   useEffect(() => {
     const animate = () => {
       const now = Date.now();
@@ -111,15 +113,6 @@ export default function PlayerPage({ song, isPlaying, currentTime, duration, pla
     return idx;
   }, [currentTime, lyrics]);
 
-  // Get 3 visible lyric lines: previous, current, next
-  const visibleLyrics = useMemo(() => {
-    if (currentLyricIndex < 0 || lyrics.length === 0) return [];
-    const prev = currentLyricIndex > 0 ? lyrics[currentLyricIndex - 1] : null;
-    const curr = lyrics[currentLyricIndex];
-    const next = currentLyricIndex < lyrics.length - 1 ? lyrics[currentLyricIndex + 1] : null;
-    return [prev, curr, next];
-  }, [currentLyricIndex, lyrics]);
-
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
@@ -133,11 +126,12 @@ export default function PlayerPage({ song, isPlaying, currentTime, duration, pla
       {/* Blurred background */}
       <div className="absolute inset-0 z-0">
         {cover ? (
-          <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${cover})`, filter: 'blur(30px) brightness(0.45) saturate(1.2)', transform: 'scale(1.15)' }} />
+          <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${cover})`, filter: 'blur(40px) brightness(0.3) saturate(1.5)', transform: 'scale(1.3)' }} />
         ) : (
           <div className="w-full h-full bg-gradient-to-b from-obsidian-400 to-obsidian-700" />
         )}
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
       </div>
 
       {/* Header */}
@@ -149,42 +143,106 @@ export default function PlayerPage({ song, isPlaying, currentTime, duration, pla
           <p className="font-lyric font-bold text-lg md:text-2xl truncate">{song.name}</p>
           <p className="font-lyric text-sm md:text-base text-white/50 truncate mt-0.5">{song.artist}</p>
         </div>
-        <div className="w-10 md:w-11" />
+        {/* Display mode switcher */}
+        <button
+          onClick={() => setDisplayMode(d => d === 'vinyl' ? 'artist' : 'vinyl')}
+          className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all text-white/50 hover:text-white"
+          title={displayMode === 'vinyl' ? '切换到歌手图' : '切换到黑胶'}
+        >
+          {displayMode === 'vinyl' ? (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" strokeWidth={1.5} /><circle cx="12" cy="12" r="3" strokeWidth={1.5} /><line x1="12" y1="3" x2="12" y2="6" strokeWidth={1.5} /></svg>
+          )}
+        </button>
       </div>
 
-      {/* Main content — mobile: vertical stack, desktop: horizontal */}
+      {/* Main content */}
       <div className="relative z-10 flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* Cover */}
+        {/* === Vinyl / Artist Display === */}
         <div className="flex items-center justify-center pt-2 md:pt-0 md:flex-1">
-          <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-72 md:h-72 lg:w-80 lg:h-80">
-            {/* Outer ring */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-b from-obsidian-600 to-obsidian-400 shadow-2xl" />
-            {/* Grooves */}
-            <div className="absolute inset-2 rounded-full border border-white/[0.04]" />
-            <div className="absolute inset-5 rounded-full border border-white/[0.04]" />
-            <div className="absolute inset-8 rounded-full border border-white/[0.04]" />
-            <div className="absolute inset-11 rounded-full border border-white/[0.04]" />
-            {/* Cover */}
-            <div
-              ref={coverRef}
-              className="absolute inset-14 rounded-full overflow-hidden shadow-xl ring-1 ring-white/[0.08]"
-            >
-              {cover ? (
-                <img src={cover} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              ) : (
-                <div className="w-full h-full bg-obsidian-400 flex items-center justify-center">
-                  <span className="text-4xl opacity-30">♪</span>
-                </div>
-              )}
+          {displayMode === 'vinyl' ? (
+            /* === Vinyl Record with center cover === */
+            <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-72 md:h-72 lg:w-80 lg:h-80">
+              {/* Outer shadow */}
+              <div className="absolute -inset-4 rounded-full bg-black/30 blur-xl" />
+
+              {/* Vinyl body */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-b from-[#1a1a1a] via-[#111] to-[#0a0a0a] shadow-2xl" />
+
+              {/* Vinyl grooves */}
+              {[...Array(14)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full"
+                  style={{
+                    inset: `${6 + i * 3.5}px`,
+                    border: `1px solid ${i % 3 === 0 ? 'rgba(255,255,255,0.05)' : i % 3 === 1 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.02)'}`,
+                  }}
+                />
+              ))}
+
+              {/* Vinyl sheen */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.06] via-transparent to-white/[0.03]" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tl from-primary/[0.02] via-transparent to-rose-gold/[0.02]" />
+
+              {/* === Center sticker with cover === */}
+              <div
+                ref={coverRef}
+                className="absolute rounded-full overflow-hidden"
+                style={{ inset: '26%' }}
+              >
+                {/* Sticker base */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a]" />
+
+                {/* Cover art — rotates with vinyl */}
+                {cover ? (
+                  <img src={cover} alt="" className="absolute inset-[8%] w-[84%] h-[84%] object-cover rounded-full" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                ) : (
+                  <div className="absolute inset-[8%] w-[84%] h-[84%] rounded-full flex items-center justify-center bg-obsidian-400">
+                    <span className="text-3xl opacity-30">♪</span>
+                  </div>
+                )}
+
+                {/* Sticker ring */}
+                <div className="absolute inset-0 rounded-full border-2 border-white/[0.1]" />
+                <div className="absolute inset-[6%] rounded-full border border-white/[0.06]" />
+
+                {/* Center spindle hole */}
+                <div className="absolute inset-[44%] rounded-full bg-[#0a0a0a] border-2 border-white/[0.12] shadow-inner" />
+                <div className="absolute inset-[48%] rounded-full bg-gradient-to-b from-white/[0.1] to-transparent" />
+              </div>
+
+              {/* Outer ring highlight */}
+              <div className="absolute inset-0 rounded-full border border-white/[0.06]" />
+
+              {/* Glow */}
+              <div className="absolute -inset-6 rounded-full bg-primary/[0.04] blur-2xl" />
             </div>
-            {/* Center dot */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-5 h-5 rounded-full bg-obsidian-600 border-2 border-white/10 shadow-inner" />
+          ) : (
+            /* === Artist Image Mode === */
+            <div className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96">
+              {/* Outer glow */}
+              <div className="absolute -inset-6 rounded-3xl bg-primary/[0.06] blur-3xl" />
+              <div className="absolute -inset-3 rounded-3xl bg-rose-gold/[0.04] blur-2xl" />
+
+              {/* Image container */}
+              <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/[0.08]">
+                {cover ? (
+                  <img src={cover} alt="" className="w-full h-full object-cover animate-fade-in" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                ) : (
+                  <div className="w-full h-full bg-obsidian-400 flex items-center justify-center">
+                    <span className="text-6xl opacity-20">♪</span>
+                  </div>
+                )}
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Lyrics — single line with slow fade */}
+        {/* Lyrics */}
         <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-8 py-4 md:py-0">
           {loadingLyric ? (
             <div className="flex items-center justify-center h-32 md:h-48">
@@ -216,13 +274,13 @@ export default function PlayerPage({ song, isPlaying, currentTime, duration, pla
       <div className="relative z-10 px-4 md:px-8 pb-6 md:pb-10 pt-3 md:pt-4">
         {/* Progress bar */}
         <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
-          <span className="text-[10px] md:text-xs text-white/40 w-9 md:w-11 text-right font-mono">{formatTime(currentTime)}</span>
+          <span className="text-[10px] md:text-xs text-white/40 w-[42px] text-right font-mono">{formatTime(currentTime)}</span>
           <input
             type="range" min="0" max={duration || 0} value={currentTime}
             onChange={e => onSeek(parseFloat(e.target.value))}
             className="flex-1 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-glow [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125"
           />
-          <span className="text-[10px] md:text-xs text-white/40 w-9 md:w-11 font-mono">{formatTime(duration)}</span>
+          <span className="text-[10px] md:text-xs text-white/40 w-[42px] font-mono">{formatTime(duration)}</span>
         </div>
 
         {/* Buttons */}
@@ -233,7 +291,8 @@ export default function PlayerPage({ song, isPlaying, currentTime, duration, pla
           <button onClick={onPrev} className="w-11 h-11 md:w-14 md:h-14 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all">
             <svg className="w-5 h-5 md:w-7 md:h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" /></svg>
           </button>
-          <button onClick={onTogglePlay} className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/15 backdrop-blur transition-all hover:shadow-glow active:scale-95">
+          <button onClick={onTogglePlay} className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-xl transition-all duration-300 hover:shadow-glow-xl active:scale-95 border border-white/[0.08] animate-glow-breathe relative">
+            <div className="absolute inset-0 rounded-full metal-sheen opacity-20 pointer-events-none" />
             {isPlaying ? (
               <svg className="w-7 h-7 md:w-9 md:h-9" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
             ) : (

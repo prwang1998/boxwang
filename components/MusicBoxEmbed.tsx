@@ -5,8 +5,10 @@ export default function MusicBoxEmbed() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h3 className="text-lg font-display font-bold text-obsidian-50">备用听歌通道</h3>
-          <p className="text-xs text-obsidian-100 mt-1">
+          <h3 className="text-lg font-display font-bold text-obsidian-50 title-decoration">
+            <span className="text-gradient-rose">备用听歌通道</span>
+          </h3>
+          <p className="text-xs text-obsidian-100/60 mt-3 spacing-breath">
             如果搜索功能无法找到可用资源，可以使用备用通道
           </p>
         </div>
@@ -14,7 +16,7 @@ export default function MusicBoxEmbed() {
           href="https://mu-jie.cc/musicBox/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:text-primary-hover text-sm font-medium flex items-center gap-1 transition-colors"
+          className="text-primary hover:text-primary-light text-sm font-medium flex items-center gap-1.5 transition-colors btn-premium px-3 py-1.5 rounded-lg border border-primary/15 hover:border-primary/30"
         >
           新窗口打开
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,7 +24,7 @@ export default function MusicBoxEmbed() {
           </svg>
         </a>
       </div>
-      <div className="rounded-2xl overflow-hidden border border-white/[0.06] bg-surface" style={{ height: 'min(600px, 70vh)' }}>
+      <div className="rounded-2xl overflow-hidden glass border border-white/[0.04] border-breathe" style={{ height: 'min(600px, 70vh)' }}>
         <iframe
           src="https://mu-jie.cc/musicBox/"
           title="MusicBox 备用听歌通道"

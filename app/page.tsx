@@ -26,6 +26,7 @@ import { FileInfo, FileStatus, ConvertState, Song, PlayUrl, Playlist } from '@/t
 export default function Home() {
   const [activeItem, setActiveItem] = useState('format-convert');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [state, setState] = useState<ConvertState>({
     file: null,
     status: 'idle',
@@ -286,16 +287,18 @@ export default function Home() {
         return (
           <div className="space-y-6 animate-fade-in">
             {/* Music Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 relative">
               <div>
-                <h2 className="text-xl sm:text-2xl font-display font-bold text-obsidian-50">全网歌曲免费听</h2>
-                <p className="text-sm text-obsidian-100 mt-1">多源聚合，畅听无阻</p>
+                <h2 className="text-xl sm:text-2xl font-display font-bold text-obsidian-50 title-decoration">
+                  <span className="text-gradient-rose">全网歌曲免费听</span>
+                </h2>
+                <p className="text-sm text-obsidian-100/60 mt-3 spacing-breath">多源聚合，畅听无阻</p>
               </div>
               <div className="flex items-center gap-2">
                 {!showSearch && !selectedPlaylist && (
                   <button
                     onClick={() => setShowSearch(true)}
-                    className="px-4 py-2.5 bg-primary/15 text-primary border border-primary/20 rounded-xl hover:bg-primary/25 transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                    className="px-4 py-2.5 bg-primary/10 text-primary border border-primary/15 rounded-xl hover:bg-primary/20 hover:border-primary/30 hover:shadow-glow transition-all duration-300 flex items-center gap-2 text-sm font-medium btn-premium"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -305,7 +308,7 @@ export default function Home() {
                 )}
                 <button
                   onClick={() => setShowMusicSettings(!showMusicSettings)}
-                  className="w-10 h-10 rounded-xl bg-surface-elevated border border-white/[0.06] text-obsidian-100 hover:text-primary hover:border-primary/20 transition-all duration-200 flex items-center justify-center"
+                  className="w-10 h-10 rounded-xl bg-surface-elevated border border-white/[0.04] text-obsidian-100 hover:text-primary hover:border-primary/20 hover:shadow-glow transition-all duration-300 flex items-center justify-center"
                   title="网易云登录设置"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -318,8 +321,11 @@ export default function Home() {
 
             {/* Music Settings - MUSIC_U Cookie */}
             {showMusicSettings && (
-              <div className="bg-surface rounded-2xl p-5 border border-white/[0.06] animate-scale-in">
-                <h3 className="text-sm font-semibold text-obsidian-50 mb-2">网易云音乐登录设置</h3>
+              <div className="card-premium rounded-2xl p-5 animate-scale-in">
+                <h3 className="text-sm font-semibold text-obsidian-50 mb-2 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-glow" />
+                  网易云音乐登录设置
+                </h3>
                 <p className="text-xs text-obsidian-100 mb-4 leading-relaxed">
                   设置 MUSIC_U Cookie 可解锁VIP歌曲。请从网易云音乐网页版获取 Cookie 中的 MUSIC_U 值。
                 </p>
@@ -329,18 +335,18 @@ export default function Home() {
                     value={musicUInput}
                     onChange={(e) => setMusicUInput(e.target.value)}
                     placeholder="粘贴 MUSIC_U Cookie 值"
-                    className="flex-1 px-4 py-2.5 text-sm rounded-xl bg-obsidian border border-white/[0.06] focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                    className="flex-1 px-4 py-2.5 text-sm rounded-xl bg-obsidian border border-white/[0.04] focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={handleSaveMusicU}
-                      className="flex-1 sm:flex-none px-5 py-2.5 bg-primary text-obsidian-700 text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors"
+                      className="flex-1 sm:flex-none px-5 py-2.5 bg-primary text-obsidian-700 text-sm font-medium rounded-xl hover:bg-primary-hover transition-all duration-200 shadow-glow hover:shadow-glow-lg btn-premium"
                     >
                       保存
                     </button>
                     <button
                       onClick={() => setShowMusicSettings(false)}
-                      className="flex-1 sm:flex-none px-4 py-2.5 bg-surface-elevated text-obsidian-100 text-sm rounded-xl border border-white/[0.06] hover:text-obsidian-50 hover:bg-surface-hover transition-all"
+                      className="flex-1 sm:flex-none px-4 py-2.5 bg-surface-elevated text-obsidian-100 text-sm rounded-xl border border-white/[0.04] hover:text-obsidian-50 hover:bg-surface-hover transition-all duration-200"
                     >
                       取消
                     </button>
@@ -366,9 +372,9 @@ export default function Home() {
                 <MusicSearch onSearch={handleMusicSearch} loading={searchLoading} />
 
                 {searchLoading && (
-                  <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary/30 border-t-primary"></div>
-                    <p className="mt-3 text-obsidian-100 text-sm">搜索中...</p>
+                  <div className="text-center py-16">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary/20 border-t-primary shadow-glow"></div>
+                    <p className="mt-4 text-obsidian-100 text-sm animate-pulse-soft">搜索中...</p>
                   </div>
                 )}
 
@@ -406,9 +412,9 @@ export default function Home() {
             {!showSearch && !selectedPlaylist && (
               <>
                 {playlistLoading && (
-                  <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary/30 border-t-primary"></div>
-                    <p className="mt-3 text-obsidian-100 text-sm">加载推荐歌单...</p>
+                  <div className="text-center py-16">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary/20 border-t-primary shadow-glow"></div>
+                    <p className="mt-4 text-obsidian-100 text-sm animate-pulse-soft">加载推荐歌单...</p>
                   </div>
                 )}
 
@@ -420,12 +426,12 @@ export default function Home() {
                 )}
 
                 {!playlistLoading && recommendPlaylists.length === 0 && (
-                  <div className="text-center py-16 text-obsidian-100">
-                    <div className="text-4xl mb-3 opacity-30">♪</div>
-                    <p className="text-sm">暂无推荐歌单</p>
+                  <div className="text-center py-20 text-obsidian-100">
+                    <div className="text-5xl mb-4 opacity-20 animate-float">♪</div>
+                    <p className="text-sm mb-4">暂无推荐歌单</p>
                     <button
                       onClick={loadRecommendPlaylists}
-                      className="mt-4 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
+                      className="text-primary hover:text-primary-light text-sm font-medium transition-colors btn-premium px-4 py-2 rounded-xl border border-primary/20 hover:border-primary/40"
                     >
                       重新加载
                     </button>
@@ -442,13 +448,16 @@ export default function Home() {
           </div>
         );
       case 'novel-reader':
-        return <NovelReader />;
+        return <NovelReader onSidebarCollapse={setSidebarCollapsed} />;
       case 'parse-channel-config':
         return (
           <div className="space-y-6 animate-fade-in">
             <div>
-              <h2 className="text-2xl font-display font-bold text-obsidian-50">解析通道配置</h2>
-              <p className="text-sm text-obsidian-100 mt-1">管理自定义音乐 API 通道</p>
+              <h2 className="text-2xl font-display font-bold text-obsidian-50 title-decoration">
+                <span className="text-gradient-silk">解析通道配置</span>
+              </h2>
+              <p className="text-sm text-obsidian-100/60 mt-3 spacing-breath">管理自定义音乐 API 通道</p>
+              <div className="separator-gradient mt-6" />
             </div>
             <ParseChannelConfig />
           </div>
@@ -457,8 +466,11 @@ export default function Home() {
         return (
           <div className="space-y-6 animate-fade-in">
             <div>
-              <h2 className="text-2xl font-display font-bold text-obsidian-50">API 测试工具</h2>
-              <p className="text-sm text-obsidian-100 mt-1">调试和测试音乐 API 端点</p>
+              <h2 className="text-2xl font-display font-bold text-obsidian-50 title-decoration">
+                <span className="text-gradient-silk">API 测试工具</span>
+              </h2>
+              <p className="text-sm text-obsidian-100/60 mt-3 spacing-breath">调试和测试音乐 API 端点</p>
+              <div className="separator-gradient mt-6" />
             </div>
             <ApiTester />
           </div>
@@ -468,11 +480,14 @@ export default function Home() {
         return (
           <div className="animate-fade-in">
             {/* Hero Section */}
-            <div className="mb-10">
-              <h1 className="text-2xl sm:text-3xl font-display font-bold text-obsidian-50 mb-2">
-                文档格式转换
+            <div className="mb-10 relative">
+              <div className="absolute -top-8 -left-4 w-32 h-32 bg-primary/[0.04] rounded-full blur-[80px] pointer-events-none" />
+              <div className="absolute -top-4 right-0 w-20 h-20 bg-rose-gold/[0.03] rounded-full blur-[60px] pointer-events-none" />
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-obsidian-50 mb-2 relative title-decoration">
+                <span className="text-gradient-silk">文档格式转换</span>
               </h1>
-              <p className="text-obsidian-100 text-sm">上传 DOCX 或 PDF 文件，在线预览并转换格式</p>
+              <p className="text-obsidian-100/70 text-sm relative mt-3 spacing-breath">上传 DOCX 或 PDF 文件，在线预览并转换格式</p>
+              <div className="separator-gradient mt-6" />
             </div>
 
             <div className="max-w-4xl mx-auto space-y-6">
@@ -528,19 +543,15 @@ export default function Home() {
   const handleClosePlayerPage = useCallback(() => setShowPlayerPage(false), []);
 
   return (
-    <div className="flex min-h-screen relative">
-      {/* Background ambient glow */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/[0.03] rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/[0.02] rounded-full blur-[100px]" />
-      </div>
-
-      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <main className="flex-1 p-4 md:p-8 pt-14 md:pt-8 pb-24 relative z-10 overflow-x-hidden">
+    <div className="min-h-screen relative">
+      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
+      <main
+        className={`p-4 md:p-8 pt-14 md:pt-8 pb-24 relative z-10 overflow-x-hidden page-enter transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'}`}
+      >
         {/* Mobile hamburger button */}
         <button
           onClick={() => setSidebarOpen(true)}
-          className="fixed top-4 left-4 z-30 w-10 h-10 rounded-xl bg-surface/80 backdrop-blur-xl border border-white/[0.06] flex items-center justify-center text-obsidian-100 hover:text-primary transition-all md:hidden"
+          className="fixed top-4 left-4 z-30 w-10 h-10 rounded-xl glass border border-white/[0.04] flex items-center justify-center text-obsidian-100 hover:text-primary hover:border-primary/20 transition-all duration-300 md:hidden shadow-lg"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />

@@ -32,14 +32,22 @@ export default function ConvertButton({
       disabled={disabled || loading}
       className={`
         group relative px-7 py-3.5 rounded-xl font-medium text-sm
-        flex items-center gap-2.5
-        transition-all duration-200
+        flex items-center gap-2.5 overflow-hidden
+        transition-all duration-300
         ${disabled || loading
-          ? 'bg-white/[0.04] text-obsidian-100/40 cursor-not-allowed border border-white/[0.04]'
-          : 'bg-primary text-obsidian-700 hover:bg-primary-hover hover:shadow-glow active:scale-[0.98] shadow-lg shadow-primary/20'
+          ? 'bg-white/[0.03] text-obsidian-100/30 cursor-not-allowed border border-white/[0.03]'
+          : 'bg-gradient-to-r from-primary via-primary-hover to-primary-light text-obsidian-700 hover:shadow-glow-xl active:scale-[0.98] shadow-lg shadow-primary/20 btn-luxury'
         }
       `}
     >
+      {/* Shimmer overlay */}
+      {!disabled && !loading && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+      )}
+      {/* Metallic sheen */}
+      {!disabled && !loading && (
+        <div className="absolute inset-0 metal-sheen opacity-30 pointer-events-none" />
+      )}
       {loading ? (
         <div className="animate-spin rounded-full h-4 w-4 border-2 border-obsidian-700/30 border-t-obsidian-700"></div>
       ) : (

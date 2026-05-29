@@ -198,25 +198,31 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
       {showPlaylist && (
         <div className="fixed inset-0 z-40" onClick={() => setShowPlaylist(false)}>
           <div
-            className="absolute bottom-20 right-2 sm:right-6 w-[calc(100vw-1rem)] sm:w-80 max-h-96 bg-surface/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/[0.06] overflow-hidden animate-scale-in"
+            className="absolute bottom-20 right-2 sm:right-6 w-[calc(100vw-1rem)] sm:w-80 max-h-96 glass-ultra rounded-2xl overflow-hidden animate-scale-in border-breathe"
             onClick={e => e.stopPropagation()}
           >
-            <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
-              <h3 className="font-semibold text-obsidian-50 text-sm">播放列表 ({playlist.length})</h3>
+            <div className="px-4 py-3 border-b border-white/[0.04] flex items-center justify-between">
+              <h3 className="font-semibold text-obsidian-50 text-sm flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-glow" />
+                播放列表 ({playlist.length})
+              </h3>
               <button onClick={() => setShowPlaylist(false)} className="text-obsidian-100 hover:text-obsidian-50 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <div className="overflow-y-auto max-h-80">
               {playlist.length === 0 ? (
-                <div className="p-6 text-center text-obsidian-100 text-sm">暂无歌曲</div>
+                <div className="p-8 text-center text-obsidian-100 text-sm">
+                  <div className="text-3xl mb-2 opacity-20">♪</div>
+                  暂无歌曲
+                </div>
               ) : playlist.map((item, index) => (
                 <div
                   key={`${item.id}-${index}`}
-                  className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-all duration-150 ${
+                  className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-all duration-200 ${
                     currentIndex === index
                       ? 'bg-primary/10 text-primary'
-                      : 'hover:bg-white/[0.04] text-obsidian-50'
+                      : 'hover:bg-white/[0.03] text-obsidian-50'
                   }`}
                   onClick={() => { onPlayIndex(index); setShowPlaylist(false); }}
                 >
@@ -239,7 +245,9 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
       )}
 
       {/* Player Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-surface/80 backdrop-blur-xl border-t border-white/[0.06] z-50">
+      <div className="fixed bottom-0 left-0 right-0 glass-heavy border-t border-white/[0.04] z-50">
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
         <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={handleEnded} />
         <div className="max-w-7xl mx-auto px-3 md:px-6 py-2 md:py-3">
           {/* Mobile: stacked layout */}
@@ -248,13 +256,16 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
             <div className="flex items-center gap-2 md:gap-5 w-full md:w-auto">
               {/* Song Info */}
               <div
-                className={`flex items-center gap-2.5 min-w-0 flex-1 md:flex-none md:w-56 ${onOpenPlayerPage ? 'cursor-pointer hover:bg-white/[0.04] -mx-1 px-1.5 py-1 rounded-xl transition-all' : ''}`}
+                className={`flex items-center gap-3 min-w-0 flex-1 md:flex-none md:w-56 ${onOpenPlayerPage ? 'cursor-pointer hover:bg-white/[0.03] -mx-1 px-1.5 py-1 rounded-xl transition-all duration-200' : ''}`}
                 onClick={onOpenPlayerPage}
               >
                 {song.cover ? (
-                  <img src={song.cover} alt="" className="w-10 h-10 md:w-11 md:h-11 rounded-lg object-cover flex-shrink-0 ring-1 ring-white/[0.06]" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <div className="relative flex-shrink-0">
+                    <img src={song.cover} alt="" className="w-10 h-10 md:w-11 md:h-11 rounded-lg object-cover ring-1 ring-white/[0.06]" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-black/20 to-transparent" />
+                  </div>
                 ) : (
-                  <div className="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0 border border-white/[0.04]">
                     <svg className="w-5 h-5 text-obsidian-100" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z" clipRule="evenodd" /></svg>
                   </div>
                 )}
@@ -278,11 +289,13 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
                   {MODE_INFO[playMode].icon}
                 </button>
 
-                <button onClick={handlePrev} className="w-8 h-8 md:w-9 md:h-9 rounded-lg text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04] flex items-center justify-center transition-all duration-200">
+                <button onClick={handlePrev} className="w-8 h-8 md:w-9 md:h-9 rounded-lg text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04] flex items-center justify-center transition-all duration-200 hover:scale-105">
                   <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" /></svg>
                 </button>
 
-                <button onClick={togglePlay} disabled={loading} className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-primary text-obsidian-700 flex items-center justify-center hover:bg-primary-hover transition-all duration-200 disabled:opacity-40 shadow-lg shadow-primary/25 hover:shadow-glow active:scale-95">
+                <button onClick={togglePlay} disabled={loading} className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-gradient-to-br from-primary via-primary-hover to-primary-light text-obsidian-700 flex items-center justify-center hover:from-primary-light hover:to-primary transition-all duration-300 disabled:opacity-40 shadow-lg shadow-primary/30 hover:shadow-glow-xl active:scale-95 relative animate-glow-breathe">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/25 via-white/10 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 rounded-full metal-sheen pointer-events-none" />
                   {loading ? (
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-obsidian-700/30 border-t-obsidian-700"></div>
                   ) : isPlaying ? (
@@ -292,7 +305,7 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
                   )}
                 </button>
 
-                <button onClick={handleNext} className="w-8 h-8 md:w-9 md:h-9 rounded-lg text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04] flex items-center justify-center transition-all duration-200">
+                <button onClick={handleNext} className="w-8 h-8 md:w-9 md:h-9 rounded-lg text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04] flex items-center justify-center transition-all duration-200 hover:scale-105">
                   <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" /></svg>
                 </button>
 
