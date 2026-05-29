@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
 import FileUpload from '@/components/FileUpload';
 import FilePreview from '@/components/FilePreview';
@@ -237,7 +237,7 @@ export default function Home() {
     setMusicLoading(false);
   };
 
-  const handlePlayIndex = async (index: number) => {
+  const handlePlayIndex = useCallback(async (index: number) => {
     if (index < 0 || index >= playQueue.length) return;
     setCurrentIndex(index);
     const song = playQueue[index];
@@ -246,7 +246,7 @@ export default function Home() {
     const url = await fetchPlayUrl(song);
     if (url) setPlayUrl(url);
     setMusicLoading(false);
-  };
+  }, [playQueue, fetchPlayUrl]);
 
   const handlePlaylistClick = async (playlist: Playlist) => {
     setShowSearch(false);
@@ -282,16 +282,20 @@ export default function Home() {
         return <ImageDownload />;
       case 'music-listen':
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fade-in">
+            {/* Music Header */}
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">全网歌曲免费听</h2>
+              <div>
+                <h2 className="text-2xl font-display font-bold text-obsidian-50">全网歌曲免费听</h2>
+                <p className="text-sm text-obsidian-100 mt-1">多源聚合，畅听无阻</p>
+              </div>
               <div className="flex items-center gap-2">
                 {!showSearch && !selectedPlaylist && (
                   <button
                     onClick={() => setShowSearch(true)}
-                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+                    className="px-4 py-2.5 bg-primary/15 text-primary border border-primary/20 rounded-xl hover:bg-primary/25 transition-all duration-200 flex items-center gap-2 text-sm font-medium"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                     搜索歌曲
@@ -299,12 +303,12 @@ export default function Home() {
                 )}
                 <button
                   onClick={() => setShowMusicSettings(!showMusicSettings)}
-                  className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  className="w-10 h-10 rounded-xl bg-surface-elevated border border-white/[0.06] text-obsidian-100 hover:text-primary hover:border-primary/20 transition-all duration-200 flex items-center justify-center"
                   title="网易云登录设置"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </button>
               </div>
@@ -312,9 +316,9 @@ export default function Home() {
 
             {/* Music Settings - MUSIC_U Cookie */}
             {showMusicSettings && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold mb-2">网易云音乐登录设置</h3>
-                <p className="text-xs text-gray-500 mb-3">
+              <div className="bg-surface rounded-2xl p-5 border border-white/[0.06] animate-scale-in">
+                <h3 className="text-sm font-semibold text-obsidian-50 mb-2">网易云音乐登录设置</h3>
+                <p className="text-xs text-obsidian-100 mb-4 leading-relaxed">
                   设置 MUSIC_U Cookie 可解锁VIP歌曲。请从网易云音乐网页版获取 Cookie 中的 MUSIC_U 值。
                 </p>
                 <div className="flex gap-2">
@@ -323,17 +327,17 @@ export default function Home() {
                     value={musicUInput}
                     onChange={(e) => setMusicUInput(e.target.value)}
                     placeholder="粘贴 MUSIC_U Cookie 值"
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="flex-1 px-4 py-2.5 text-sm rounded-xl bg-obsidian border border-white/[0.06] focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
                   />
                   <button
                     onClick={handleSaveMusicU}
-                    className="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                    className="px-5 py-2.5 bg-primary text-obsidian-700 text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors"
                   >
                     保存
                   </button>
                   <button
                     onClick={() => setShowMusicSettings(false)}
-                    className="px-3 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                    className="px-4 py-2.5 bg-surface-elevated text-obsidian-100 text-sm rounded-xl border border-white/[0.06] hover:text-obsidian-50 hover:bg-surface-hover transition-all"
                   >
                     取消
                   </button>
@@ -343,13 +347,13 @@ export default function Home() {
 
             {/* Search View */}
             {showSearch && (
-              <div className="space-y-4">
+              <div className="space-y-5 animate-fade-in">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleBackFromSearch}
-                    className="text-primary hover:text-blue-600 flex items-center gap-1"
+                    className="text-primary hover:text-primary-hover flex items-center gap-1.5 text-sm font-medium transition-colors"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                     返回
@@ -358,22 +362,22 @@ export default function Home() {
                 <MusicSearch onSearch={handleMusicSearch} loading={searchLoading} />
 
                 {searchLoading && (
-                  <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <p className="mt-2 text-gray-500">搜索中...</p>
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary/30 border-t-primary"></div>
+                    <p className="mt-3 text-obsidian-100 text-sm">搜索中...</p>
                   </div>
                 )}
 
                 {!searchLoading && songs.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">歌曲</h3>
+                    <h3 className="text-lg font-display font-semibold mb-3 text-obsidian-50">歌曲</h3>
                     <MusicList songs={songs} onPlay={handlePlaySong} currentSong={currentSong} onPlayNext={handleAddPlayNext} />
                   </div>
                 )}
 
                 {!searchLoading && searchPlaylistsResult.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">歌单</h3>
+                    <h3 className="text-lg font-display font-semibold mb-3 text-obsidian-50">歌单</h3>
                     <PlaylistGrid playlists={searchPlaylistsResult} onPlaylistClick={handlePlaylistClick} />
                   </div>
                 )}
@@ -398,25 +402,26 @@ export default function Home() {
             {!showSearch && !selectedPlaylist && (
               <>
                 {playlistLoading && (
-                  <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <p className="mt-2 text-gray-500">加载推荐歌单...</p>
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary/30 border-t-primary"></div>
+                    <p className="mt-3 text-obsidian-100 text-sm">加载推荐歌单...</p>
                   </div>
                 )}
 
                 {!playlistLoading && recommendPlaylists.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">推荐歌单</h3>
+                    <h3 className="text-lg font-display font-semibold mb-4 text-obsidian-50">推荐歌单</h3>
                     <PlaylistGrid playlists={recommendPlaylists} onPlaylistClick={handlePlaylistClick} />
                   </div>
                 )}
 
                 {!playlistLoading && recommendPlaylists.length === 0 && (
-                  <div className="text-center py-12 text-gray-500">
-                    <p>暂无推荐歌单</p>
+                  <div className="text-center py-16 text-obsidian-100">
+                    <div className="text-4xl mb-3 opacity-30">♪</div>
+                    <p className="text-sm">暂无推荐歌单</p>
                     <button
                       onClick={loadRecommendPlaylists}
-                      className="mt-4 text-primary hover:text-blue-600"
+                      className="mt-4 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
                     >
                       重新加载
                     </button>
@@ -428,39 +433,53 @@ export default function Home() {
         );
       case 'music-backup':
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fade-in">
             <MusicBoxEmbed />
           </div>
         );
       case 'parse-channel-config':
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">解析通道配置</h2>
+          <div className="space-y-6 animate-fade-in">
+            <div>
+              <h2 className="text-2xl font-display font-bold text-obsidian-50">解析通道配置</h2>
+              <p className="text-sm text-obsidian-100 mt-1">管理自定义音乐 API 通道</p>
+            </div>
             <ParseChannelConfig />
           </div>
         );
       case 'api-tester':
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">API 测试工具</h2>
+          <div className="space-y-6 animate-fade-in">
+            <div>
+              <h2 className="text-2xl font-display font-bold text-obsidian-50">API 测试工具</h2>
+              <p className="text-sm text-obsidian-100 mt-1">调试和测试音乐 API 端点</p>
+            </div>
             <ApiTester />
           </div>
         );
       case 'format-convert':
       default:
         return (
-          <>
-            <h1 className="text-3xl font-bold mb-8">文档格式转换</h1>
+          <div className="animate-fade-in">
+            {/* Hero Section */}
+            <div className="mb-10">
+              <h1 className="text-3xl font-display font-bold text-obsidian-50 mb-2">
+                文档格式转换
+              </h1>
+              <p className="text-obsidian-100 text-sm">上传 DOCX 或 PDF 文件，在线预览并转换格式</p>
+            </div>
 
             <div className="max-w-4xl mx-auto space-y-6">
               <FileUpload onFileSelect={handleFileSelect} disabled={state.status === 'converting'} />
 
               {state.file && (
-                <FilePreview file={state.file} previewHtml={state.previewHtml} />
+                <div className="animate-slide-up">
+                  <FilePreview file={state.file} previewHtml={state.previewHtml} />
+                </div>
               )}
 
               {state.file && (
-                <div className="flex gap-4 justify-center">
+                <div className="flex gap-4 justify-center animate-slide-up">
                   <ConvertButton
                     direction="docx-to-pdf"
                     onClick={() => handleConvert('docx-to-pdf')}
@@ -478,15 +497,40 @@ export default function Home() {
 
               <StatusBar status={state.status} errorMessage={state.errorMessage} />
             </div>
-          </>
+          </div>
         );
     }
   };
 
+  // Stable callbacks for PlayerPage to avoid re-renders
+  const handlePlayerPrev = useCallback(() => {
+    const idx = currentIndex > 0 ? currentIndex - 1 : playQueue.length - 1;
+    if (idx >= 0) handlePlayIndex(idx);
+  }, [currentIndex, playQueue, handlePlayIndex]);
+
+  const handlePlayerNext = useCallback(() => {
+    const idx = currentIndex < playQueue.length - 1 ? currentIndex + 1 : 0;
+    if (idx >= 0) handlePlayIndex(idx);
+  }, [currentIndex, playQueue, handlePlayIndex]);
+
+  const handleCycleMode = useCallback(() => {
+    const modes: typeof playMode[] = ['sequential', 'shuffle', 'loop', 'single'];
+    setPlayMode(modes[(modes.indexOf(playMode) + 1) % modes.length]);
+  }, [playMode]);
+
+  const handleOpenPlayerPage = useCallback(() => setShowPlayerPage(true), []);
+  const handleClosePlayerPage = useCallback(() => setShowPlayerPage(false), []);
+
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen relative">
+      {/* Background ambient glow */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/[0.03] rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/[0.02] rounded-full blur-[100px]" />
+      </div>
+
       <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
-      <main className="flex-1 p-8 pb-24">
+      <main className="flex-1 p-8 pb-24 relative z-10 overflow-x-hidden">
         {renderContent()}
       </main>
 
@@ -499,25 +543,16 @@ export default function Home() {
           duration={playerState.duration}
           playMode={playMode}
           onTogglePlay={playerState.togglePlay}
-          onPrev={() => {
-            const idx = currentIndex > 0 ? currentIndex - 1 : playQueue.length - 1;
-            if (idx >= 0) handlePlayIndex(idx);
-          }}
-          onNext={() => {
-            const idx = currentIndex < playQueue.length - 1 ? currentIndex + 1 : 0;
-            if (idx >= 0) handlePlayIndex(idx);
-          }}
-          onCycleMode={() => {
-            const modes: typeof playMode[] = ['sequential', 'shuffle', 'loop', 'single'];
-            setPlayMode(modes[(modes.indexOf(playMode) + 1) % modes.length]);
-          }}
-          onSeek={(time) => playerState.seek(time)}
-          onClose={() => setShowPlayerPage(false)}
+          onPrev={handlePlayerPrev}
+          onNext={handlePlayerNext}
+          onCycleMode={handleCycleMode}
+          onSeek={playerState.seek}
+          onClose={handleClosePlayerPage}
         />
       )}
 
-      {/* Global Music Player - Fixed at bottom */}
-      {currentSong && activeItem === 'music-listen' && (
+      {/* Global Music Player - Fixed at bottom, always rendered */}
+      {currentSong && (
         <MusicPlayer
           song={currentSong}
           playUrl={playUrl}
@@ -527,7 +562,7 @@ export default function Home() {
           onPlayIndex={handlePlayIndex}
           playMode={playMode}
           onPlayModeChange={setPlayMode}
-          onOpenPlayerPage={() => setShowPlayerPage(true)}
+          onOpenPlayerPage={handleOpenPlayerPage}
           onStateChange={setPlayerState}
         />
       )}
