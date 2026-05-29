@@ -46,9 +46,16 @@ const menuItems: MenuItem[] = [
       { id: 'audio-extract', label: '音频提取', icon: '📤' },
       { id: 'music-listen', label: '免费听歌', icon: '🎧' },
       { id: 'music-backup', label: '备用听歌', icon: '🎤' },
-      { id: 'novel-reader', label: '免费看小说', icon: '📖' },
       { id: 'parse-channel-config', label: '解析通道配置', icon: '⚙' },
       { id: 'api-tester', label: 'API测试', icon: '🔧' },
+    ],
+  },
+  {
+    id: 'reading-tools',
+    label: '阅读工具',
+    icon: '📚',
+    children: [
+      { id: 'novel-reader', label: '免费看小说', icon: '📖' },
     ],
   },
 ];
@@ -59,7 +66,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeItem, onItemClick }: SidebarProps) {
-  const [expandedItems, setExpandedItems] = useState<string[]>(['doc-tools', 'audio-tools']);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['doc-tools', 'audio-tools', 'reading-tools']);
   const [collapsed, setCollapsed] = useState(false);
 
   const toggleExpand = (id: string) => {
