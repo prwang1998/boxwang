@@ -26,7 +26,7 @@ export default function MusicSearch({ onSearch, loading }: MusicSearchProps) {
   return (
     <div className="flex gap-3">
       <div className="flex-1 relative">
-        <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-obsidian-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-obsidian-100 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
@@ -35,7 +35,7 @@ export default function MusicSearch({ onSearch, loading }: MusicSearchProps) {
           onChange={(e) => setKeyword(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="输入歌曲名、歌手..."
-          className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-surface border border-white/[0.06] text-obsidian-50 text-sm placeholder:text-obsidian-100/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+          className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-surface border border-white/[0.06] text-obsidian-50 text-sm placeholder:text-obsidian-100/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all relative z-10"
           disabled={loading}
         />
       </div>

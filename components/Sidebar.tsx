@@ -71,11 +71,19 @@ interface SidebarProps {
   onItemClick: (id: string) => void;
   isOpen?: boolean;
   onClose?: () => void;
+  collapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-export default function Sidebar({ activeItem, onItemClick, isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ activeItem, onItemClick, isOpen, onClose, collapsed: collapsedProp, onCollapsedChange }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>(['doc-tools', 'audio-tools']);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsedState, setCollapsedState] = useState(false);
+  const collapsed = collapsedProp !== undefined ? collapsedProp : collapsedState;
+  const setCollapsed = (val: boolean | ((prev: boolean) => boolean)) => {
+    const next = typeof val === 'function' ? val(collapsed) : val;
+    setCollapsedState(next);
+    onCollapsedChange?.(next);
+  };
 
   const toggleExpand = (id: string) => {
     setExpandedItems((prev) =>

@@ -29,6 +29,7 @@ export default function Home() {
   const { theme, toggleTheme } = useTheme();
   const [activeItem, setActiveItem] = useState('format-convert');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [state, setState] = useState<ConvertState>({
     file: null,
     status: 'idle',
@@ -540,8 +541,8 @@ export default function Home() {
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/[0.02] rounded-full blur-[100px]" />
       </div>
 
-      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <main className="flex-1 p-4 md:p-8 pt-14 md:pt-8 pb-24 relative z-10 overflow-x-hidden">
+      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
+      <main className={`flex-1 p-4 md:p-8 pt-14 md:pt-8 pb-24 relative z-10 overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'}`}>
         {/* Mobile hamburger button */}
         <button
           onClick={() => setSidebarOpen(true)}
