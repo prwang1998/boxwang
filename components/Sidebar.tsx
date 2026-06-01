@@ -162,11 +162,11 @@ export default function Sidebar({ activeItem, onItemClick, isOpen, onClose, coll
           {menuItems.map((item, itemIndex) => (
             <div key={item.id} className="animate-slide-up" style={{ animationDelay: `${itemIndex * 0.05}s` }}>
               <button
-                onClick={() => toggleExpand(item.id)}
+                onClick={() => item.children ? toggleExpand(item.id) : handleItemClick(item.id)}
                 className={`
                   w-full flex items-center gap-3 p-2.5 rounded-xl
                   transition-all duration-200
-                  ${expandedItems.includes(item.id)
+                  ${activeItem === item.id || expandedItems.includes(item.id)
                     ? 'bg-white/[0.06] text-obsidian-50'
                     : 'text-obsidian-100 hover:bg-white/[0.04] hover:text-obsidian-50'
                   }
@@ -176,16 +176,21 @@ export default function Sidebar({ activeItem, onItemClick, isOpen, onClose, coll
               >
                 <span className="text-lg flex-shrink-0">{item.icon}</span>
                 <span className={`font-medium text-sm flex-1 text-left ${collapsed ? 'md:hidden' : ''}`}>{item.label}</span>
-                <svg
-                  className={`w-3.5 h-3.5 text-obsidian-100 transition-transform duration-200 ${collapsed ? 'md:hidden' : ''} ${
-                    expandedItems.includes(item.id) ? 'rotate-90' : ''
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                {item.children && (
+                  <svg
+                    className={`w-3.5 h-3.5 text-obsidian-100 transition-transform duration-200 ${collapsed ? 'md:hidden' : ''} ${
+                      expandedItems.includes(item.id) ? 'rotate-90' : ''
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                )}
+                {activeItem === item.id && !item.children && (
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-glow" />
+                )}
               </button>
 
               {/* Children */}
