@@ -58,6 +58,11 @@ const menuItems: MenuItem[] = [
       { id: 'novel-reader', label: '免费看小说', icon: '📖' },
     ],
   },
+  {
+    id: 'about',
+    label: '关于',
+    icon: 'ℹ️',
+  },
 ];
 
 interface SidebarProps {

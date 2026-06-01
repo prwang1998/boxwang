@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ThemeProvider } from './theme-context';
 
 export const metadata: Metadata = {
   title: 'BoxWang · 工具箱',
@@ -12,8 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" className="dark">
-      <body className="bg-obsidian text-obsidian-50 font-body antialiased relative">
+    <html lang="zh-CN" className="dark" suppressHydrationWarning>
+      <body className="font-body antialiased relative" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+        <ThemeProvider>
         {/* === Multi-layer Ambient Light System === */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
           {/* Layer 1: Primary warm glow — top left */}
@@ -67,6 +69,7 @@ export default function RootLayout({
         <div className="relative z-10">
           {children}
         </div>
+        </ThemeProvider>
       </body>
     </html>
   );
