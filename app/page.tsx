@@ -448,7 +448,7 @@ export default function Home() {
           </div>
         );
       case 'novel-reader':
-        return <NovelReader onSidebarCollapse={setSidebarCollapsed} />;
+        return <NovelReader onSidebarCollapse={setSidebarCollapsed} playlist={playQueue} currentSong={currentSong} />;
       case 'parse-channel-config':
         return (
           <div className="space-y-6 animate-fade-in">

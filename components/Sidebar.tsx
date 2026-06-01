@@ -70,7 +70,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeItem, onItemClick, isOpen, onClose, collapsed: collapsedProp, onCollapsedChange }: SidebarProps) {
-  const [expandedItems, setExpandedItems] = useState<string[]>(['doc-tools', 'audio-tools', 'reading-tools']);
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [collapsedState, setCollapsedState] = useState(false);
   const collapsed = collapsedProp !== undefined ? collapsedProp : collapsedState;
   const setCollapsed = (val: boolean | ((prev: boolean) => boolean)) => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Song } from '@/types/music';
 
 // 精美冒热气咖啡组件 — 可拖动
 function FloatingCoffee() {
@@ -66,23 +67,41 @@ function FloatingCoffee() {
         transition: 'filter 0.3s ease',
       }}>
         <svg width="80" height="90" viewBox="0 0 80 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* 热气 */}
-          <g className="animate-[steamRise_3s_ease-in-out_infinite]">
-            <path d="M30 20C30 20 28 12 32 8C36 4 30 0 30 0" stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round" fill="none">
-              <animate attributeName="d" values="M30 20C30 20 28 12 32 8C36 4 30 0 30 0;M30 20C30 20 32 14 28 10C24 6 30 2 30 2;M30 20C30 20 28 12 32 8C36 4 30 0 30 0" dur="3s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.3;0.1;0.3" dur="3s" repeatCount="indefinite"/>
+          {/* 热气 - 增强效果 */}
+          <g>
+            <path d="M30 22C30 22 27 14 31 9C35 4 29 -1 29 -1" stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" strokeLinecap="round" fill="none">
+              <animate attributeName="d" values="M30 22C30 22 27 14 31 9C35 4 29 -1 29 -1;M30 22C30 22 33 16 29 11C25 6 31 1 31 1;M30 22C30 22 27 14 31 9C35 4 29 -1 29 -1" dur="2.8s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2.8s" repeatCount="indefinite"/>
+              <animateTransform attributeName="transform" type="translate" values="0,0;-2,-4;0,0" dur="2.8s" repeatCount="indefinite"/>
             </path>
           </g>
-          <g className="animate-[steamRise_3.5s_ease-in-out_infinite_0.5s]">
-            <path d="M40 18C40 18 38 10 42 6C46 2 40 -2 40 -2" stroke="rgba(255,255,255,0.25)" strokeWidth="2" strokeLinecap="round" fill="none">
-              <animate attributeName="d" values="M40 18C40 18 38 10 42 6C46 2 40 -2 40 -2;M40 18C40 18 42 12 38 8C34 4 40 0 40 0;M40 18C40 18 38 10 42 6C46 2 40 -2 40 -2" dur="3.5s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.35;0.15;0.35" dur="3.5s" repeatCount="indefinite"/>
+          <g>
+            <path d="M40 20C40 20 37 11 41 6C45 1 39 -4 39 -4" stroke="rgba(255,255,255,0.4)" strokeWidth="3" strokeLinecap="round" fill="none">
+              <animate attributeName="d" values="M40 20C40 20 37 11 41 6C45 1 39 -4 39 -4;M40 20C40 20 43 13 39 8C35 3 41 -2 41 -2;M40 20C40 20 37 11 41 6C45 1 39 -4 39 -4" dur="3.2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.45;0.12;0.45" dur="3.2s" repeatCount="indefinite"/>
+              <animateTransform attributeName="transform" type="translate" values="0,0;2,-5;0,0" dur="3.2s" repeatCount="indefinite"/>
             </path>
           </g>
-          <g className="animate-[steamRise_4s_ease-in-out_infinite_1s]">
-            <path d="M50 20C50 20 48 12 52 8C56 4 50 0 50 0" stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round" fill="none">
-              <animate attributeName="d" values="M50 20C50 20 48 12 52 8C56 4 50 0 50 0;M50 20C50 20 52 14 48 10C44 6 50 2 50 2;M50 20C50 20 48 12 52 8C56 4 50 0 50 0" dur="4s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.25;0.1;0.25" dur="4s" repeatCount="indefinite"/>
+          <g>
+            <path d="M50 22C50 22 47 14 51 9C55 4 49 -1 49 -1" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5" strokeLinecap="round" fill="none">
+              <animate attributeName="d" values="M50 22C50 22 47 14 51 9C55 4 49 -1 49 -1;M50 22C50 22 53 16 49 11C45 6 51 1 51 1;M50 22C50 22 47 14 51 9C55 4 49 -1 49 -1" dur="3.5s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.35;0.08;0.35" dur="3.5s" repeatCount="indefinite"/>
+              <animateTransform attributeName="transform" type="translate" values="0,0;-1,-4;0,0" dur="3.5s" repeatCount="indefinite"/>
+            </path>
+          </g>
+          {/* 额外热气线条 */}
+          <g>
+            <path d="M35 24C35 24 33 16 36 11C39 6 34 1 34 1" stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round" fill="none">
+              <animate attributeName="d" values="M35 24C35 24 33 16 36 11C39 6 34 1 34 1;M35 24C35 24 37 18 34 13C31 8 36 3 36 3;M35 24C35 24 33 16 36 11C39 6 34 1 34 1" dur="4s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.3;0.05;0.3" dur="4s" repeatCount="indefinite"/>
+              <animateTransform attributeName="transform" type="translate" values="0,0;1,-3;0,0" dur="4s" repeatCount="indefinite"/>
+            </path>
+          </g>
+          <g>
+            <path d="M45 23C45 23 43 15 46 10C49 5 44 0 44 0" stroke="rgba(255,255,255,0.25)" strokeWidth="2" strokeLinecap="round" fill="none">
+              <animate attributeName="d" values="M45 23C45 23 43 15 46 10C49 5 44 0 44 0;M45 23C45 24 47 17 44 12C41 7 46 2 46 2;M45 23C45 23 43 15 46 10C49 5 44 0 44 0" dur="3.8s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.28;0.06;0.28" dur="3.8s" repeatCount="indefinite"/>
+              <animateTransform attributeName="transform" type="translate" values="0,0;-1,-4;0,0" dur="3.8s" repeatCount="indefinite"/>
             </path>
           </g>
 
@@ -447,6 +466,8 @@ interface Chapter {
 
 interface NovelReaderProps {
   onSidebarCollapse?: (collapsed: boolean) => void;
+  playlist?: Song[];
+  currentSong?: Song | null;
 }
 
 // 主题配置
@@ -544,7 +565,7 @@ const FONTS = [
   { key: 'lishu', name: '隶书', family: '"LiSu", "STLiti", "隶书", serif' },
 ];
 
-export default function NovelReader({ onSidebarCollapse }: NovelReaderProps) {
+export default function NovelReader({ onSidebarCollapse, playlist = [], currentSong = null }: NovelReaderProps) {
   const [keyword, setKeyword] = useState('');
   const [books, setBooks] = useState<Book[]>([]);
   const [recommendBooks, setRecommendBooks] = useState<Book[]>([]);
@@ -858,7 +879,9 @@ export default function NovelReader({ onSidebarCollapse }: NovelReaderProps) {
             <button onClick={() => setShowSettings(!showSettings)} className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors" style={{ color: theme.textSecondary, background: showSettings ? theme.drawerActive : 'transparent' }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             </button>
-            {showSettings && <SettingsPanel />}
+            <div className={`transition-all duration-300 ease-out ${showSettings ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}`} style={{ transformOrigin: 'top right' }}>
+              {showSettings && <SettingsPanel />}
+            </div>
           </div>
         </div>
 
@@ -898,7 +921,7 @@ export default function NovelReader({ onSidebarCollapse }: NovelReaderProps) {
         )}
 
         {/* Bug3: 正文内容 + 底部固定导航 */}
-        <div ref={contentRef} className="flex-1 overflow-y-auto pb-20">
+        <div ref={contentRef} className="flex-1 overflow-y-auto" style={{ paddingBottom: currentSong ? '200px' : '100px' }}>
           <div className="max-w-2xl mx-auto px-6 py-8">
             <h1 className="text-xl font-bold mb-8 text-center" style={{ color: textColor, fontFamily: font.family }}>{currentChapter.title}</h1>
             <div className="leading-[2] whitespace-pre-wrap" style={{ fontSize: `${fontSize}px`, fontFamily: font.family, color: textColor, textIndent: '2em' }}>
@@ -907,8 +930,8 @@ export default function NovelReader({ onSidebarCollapse }: NovelReaderProps) {
           </div>
         </div>
 
-        {/* Bug3: 固定底部导航栏 */}
-        <div className="fixed bottom-0 left-0 right-0 z-30 border-t" style={{ borderColor: theme.border, background: theme.toolbarBg, backdropFilter: 'blur(12px)' }}>
+        {/* Bug3: 固定底部导航栏 - 动态计算位置避免被播放栏覆盖 */}
+        <div className="fixed left-0 right-0 z-30 border-t" style={{ borderColor: theme.border, background: theme.toolbarBg, backdropFilter: 'blur(12px)', bottom: currentSong ? '80px' : '0px' }}>
           <div className="flex items-center justify-between max-w-2xl mx-auto px-6 py-3">
             <button
               onClick={() => navChapter(-1)}
