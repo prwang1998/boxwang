@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Playlist } from '@/types/music';
 
-type LayoutMode = 'auto' | '3' | '5';
+type LayoutMode = '3' | '5';
 
 interface PlaylistGridProps {
   playlists: Playlist[];
@@ -11,13 +11,12 @@ interface PlaylistGridProps {
 }
 
 const LAYOUT_OPTIONS: { key: LayoutMode; label: string }[] = [
-  { key: 'auto', label: '自动' },
   { key: '3', label: '三列' },
   { key: '5', label: '五列' },
 ];
 
 export default function PlaylistGrid({ playlists, onPlaylistClick }: PlaylistGridProps) {
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('auto');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('3');
 
   const formatPlayCount = (count: number): string => {
     if (count >= 100000000) return `${(count / 100000000).toFixed(1)}亿`;
@@ -50,9 +49,7 @@ export default function PlaylistGrid({ playlists, onPlaylistClick }: PlaylistGri
 
       {/* Grid layout */}
       <div className={`grid gap-3 sm:gap-4 md:gap-5 ${
-        layoutMode === '3' ? 'grid-cols-3' :
-        layoutMode === '5' ? 'grid-cols-5' :
-        'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+        layoutMode === '5' ? 'grid-cols-5' : 'grid-cols-3'
       }`}>
         {playlists.map((playlist, index) => (
           <PlaylistItem
