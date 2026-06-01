@@ -21,27 +21,25 @@ export default function StatusBar({ status, errorMessage }: StatusBarProps) {
   const message = status === 'error' && errorMessage ? errorMessage : config.message;
 
   return (
-    <div className={`flex items-center gap-3 px-5 py-3.5 rounded-xl glass border transition-all duration-300 ${
-      status === 'success' ? 'border-success/20' : status === 'error' ? 'border-error/20' : 'border-white/[0.04]'
-    }`}>
+    <div className="flex items-center gap-3 px-5 py-3.5 rounded-xl bg-surface/60 border border-white/[0.06]">
       {config.icon === 'loading' && (
-        <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary/20 border-t-primary shadow-glow"></div>
+        <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary/30 border-t-primary"></div>
       )}
       {config.icon === 'success' && (
-        <div className="w-5 h-5 rounded-full bg-success/15 flex items-center justify-center shadow-[0_0_8px_rgba(74,222,128,0.2)]">
-          <svg className="w-3 h-3 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-4 h-4 rounded-full bg-success/20 flex items-center justify-center">
+          <svg className="w-2.5 h-2.5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
           </svg>
         </div>
       )}
       {config.icon === 'error' && (
-        <div className="w-5 h-5 rounded-full bg-error/15 flex items-center justify-center shadow-[0_0_8px_rgba(248,113,113,0.2)]">
-          <svg className="w-3 h-3 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-4 h-4 rounded-full bg-error/20 flex items-center justify-center">
+          <svg className="w-2.5 h-2.5 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </div>
       )}
-      <span className={`text-sm font-medium ${config.color}`}>{message}</span>
+      <span className={`text-sm ${config.color}`}>{message}</span>
     </div>
   );
 }
