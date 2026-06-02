@@ -18,7 +18,6 @@ import ParseChannelConfig from '@/components/ParseChannelConfig';
 import ApiTester from '@/components/ApiTester';
 import NovelReader from '@/components/NovelReader';
 import AboutPage from '@/components/AboutPage';
-import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/app/theme-context';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
@@ -334,7 +333,7 @@ export default function Home() {
                     value={musicUInput}
                     onChange={(e) => setMusicUInput(e.target.value)}
                     placeholder="粘贴 MUSIC_U Cookie 值"
-                    className="flex-1 px-4 py-2.5 text-sm rounded-xl bg-obsidian border border-white/[0.06] focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                    className="flex-1 px-4 py-2.5 text-sm rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
                   />
                   <div className="flex gap-2">
                     <button
@@ -470,6 +469,37 @@ export default function Home() {
         );
       case 'about':
         return <AboutPage />;
+      case 'settings':
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div>
+              <h2 className="text-2xl font-display font-bold text-obsidian-50">设置</h2>
+              <p className="text-sm text-obsidian-100 mt-1">应用外观与偏好设置</p>
+            </div>
+            <div className="bg-surface rounded-2xl p-5 border border-white/[0.06]">
+              <h3 className="text-sm font-semibold text-obsidian-50 mb-4">外观设置</h3>
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/[0.06] transition-all duration-200"
+              >
+                <span className="text-lg">{theme === 'dark' ? '🌙' : '☀️'}</span>
+                <span className="text-sm text-obsidian-50 flex-1 text-left">
+                  {theme === 'dark' ? '深色模式' : '浅色模式'}
+                </span>
+                <div
+                  className={`w-9 h-5 rounded-full transition-all duration-300 relative ${
+                    theme === 'dark' ? 'bg-primary' : ''
+                  }`}
+                  style={theme === 'light' ? { background: 'rgba(180,150,100,0.25)' } : {}}
+                >
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 ${
+                    theme === 'dark' ? 'left-[18px]' : 'left-0.5'
+                  }`} />
+                </div>
+              </button>
+            </div>
+          </div>
+        );
       case 'format-convert':
       default:
         return (
@@ -588,9 +618,6 @@ export default function Home() {
           onStateChange={setPlayerState}
         />
       )}
-
-      {/* Theme Toggle - Fixed at bottom right */}
-      <ThemeToggle />
     </div>
   );
 }

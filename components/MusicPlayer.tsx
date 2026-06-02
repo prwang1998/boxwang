@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Song, PlayUrl } from '@/types/music';
+import { useTheme } from '@/app/theme-context';
 
 type PlayMode = 'sequential' | 'shuffle' | 'loop' | 'single';
 
@@ -71,6 +72,8 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.8);
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -198,10 +201,17 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
       {showPlaylist && (
         <div className="fixed inset-0 z-40" onClick={() => setShowPlaylist(false)}>
           <div
-            className="absolute bottom-20 right-2 sm:right-6 w-[calc(100vw-1rem)] sm:w-80 max-h-96 bg-surface/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/[0.06] overflow-hidden animate-scale-in"
+            className="absolute bottom-20 right-2 sm:right-6 w-[calc(100vw-1rem)] sm:w-80 max-h-96 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden animate-scale-in"
+            style={{
+              background: isLight ? 'rgba(255,255,255,0.95)' : 'rgba(26,26,26,0.95)',
+              border: isLight ? '1px solid rgba(180,150,100,0.15)' : '1px solid rgba(255,255,255,0.06)',
+            }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+            <div
+              className="px-4 py-3 flex items-center justify-between"
+              style={{ borderBottom: isLight ? '1px solid rgba(180,150,100,0.12)' : '1px solid rgba(255,255,255,0.06)' }}
+            >
               <h3 className="font-semibold text-obsidian-50 text-sm">播放列表 ({playlist.length})</h3>
               <button onClick={() => setShowPlaylist(false)} className="text-obsidian-100 hover:text-obsidian-50 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -216,8 +226,13 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
                   className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-all duration-150 ${
                     currentIndex === index
                       ? 'bg-primary/10 text-primary'
-                      : 'hover:bg-white/[0.04] text-obsidian-50'
+                      : 'text-obsidian-50'
                   }`}
+                  style={currentIndex !== index ? {
+                    ['--hover-bg' as string]: isLight ? 'rgba(180,150,100,0.06)' : 'rgba(255,255,255,0.04)',
+                  } : {}}
+                  onMouseEnter={e => { if (currentIndex !== index) (e.currentTarget as HTMLElement).style.background = isLight ? 'rgba(180,150,100,0.06)' : 'rgba(255,255,255,0.04)'; }}
+                  onMouseLeave={e => { if (currentIndex !== index) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                   onClick={() => { onPlayIndex(index); setShowPlaylist(false); }}
                 >
                   <span className="w-6 text-center text-xs text-obsidian-100">
@@ -239,7 +254,13 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
       )}
 
       {/* Player Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-surface/80 backdrop-blur-xl border-t border-white/[0.06] z-50">
+      <div
+        className="fixed bottom-0 left-0 right-0 backdrop-blur-xl z-50"
+        style={{
+          background: isLight ? 'rgba(255,255,255,0.88)' : 'rgba(26,26,26,0.8)',
+          borderTop: isLight ? '1px solid rgba(180,150,100,0.15)' : '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
         <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={handleEnded} />
         <div className="max-w-7xl mx-auto px-3 md:px-6 py-2 md:py-3">
           {/* Mobile: stacked layout */}

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Song } from '@/types/music';
+import { useTheme } from '@/app/theme-context';
 
 interface MusicListProps {
   songs: Song[];
@@ -14,6 +15,8 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const timeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   // Cleanup all timeouts on unmount
   useEffect(() => {
@@ -131,7 +134,13 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
           </div>
 
           {expandedId === song.id && (
-            <div className="p-4 bg-white/[0.02] border-t border-white/[0.04] animate-fade-in">
+            <div
+              className="p-4 border-t animate-fade-in"
+              style={{
+                background: isLight ? 'rgba(245,240,232,0.6)' : 'rgba(255,255,255,0.02)',
+                borderColor: isLight ? 'rgba(180,150,100,0.1)' : 'rgba(255,255,255,0.04)',
+              }}
+            >
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
                 {song.cover && (
                   <img src={song.cover} alt={song.name} className="w-28 h-28 object-cover rounded-xl shadow-lg ring-1 ring-white/[0.06]" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -146,7 +155,17 @@ export default function MusicList({ songs, onPlay, currentSong, onPlayNext }: Mu
                       播放歌曲
                     </button>
                     {onPlayNext && (
-                      <button onClick={() => handlePlayNext(new MouseEvent('click') as any, song)} className="px-4 py-2 border border-white/[0.08] text-obsidian-100 rounded-lg hover:bg-white/[0.04] hover:text-obsidian-50 transition-all text-sm">
+                      <button
+                        onClick={() => handlePlayNext(new MouseEvent('click') as any, song)}
+                        className="px-4 py-2 rounded-lg hover:text-obsidian-50 transition-all text-sm"
+                        style={{
+                          border: isLight ? '1px solid rgba(180,150,100,0.2)' : '1px solid rgba(255,255,255,0.08)',
+                          color: isLight ? '#6b5e4f' : 'rgba(255,255,255,0.5)',
+                          background: 'transparent',
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = isLight ? 'rgba(180,150,100,0.08)' : 'rgba(255,255,255,0.04)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
                         下一首播放
                       </button>
                     )}
