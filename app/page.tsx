@@ -18,6 +18,7 @@ import ParseChannelConfig from '@/components/ParseChannelConfig';
 import ApiTester from '@/components/ApiTester';
 import NovelReader from '@/components/NovelReader';
 import AboutPage from '@/components/AboutPage';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/app/theme-context';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
@@ -587,6 +588,9 @@ export default function Home() {
           onStateChange={setPlayerState}
         />
       )}
+
+      {/* Theme Toggle - Fixed at bottom right */}
+      <ThemeToggle />
     </div>
   );
 }
