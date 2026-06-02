@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body className="bg-obsidian text-obsidian-50 font-body antialiased">
+      <body className="bg-obsidian text-obsidian-50 font-body antialiased tracking-[-0.01em]">
         <Providers>
           {children}
         </Providers>

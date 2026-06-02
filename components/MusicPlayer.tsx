@@ -253,14 +253,26 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
         </div>
       )}
 
-      {/* Player Bar */}
+      {/* Player Bar — Floating Island */}
       <div
-        className="fixed bottom-0 left-0 right-0 backdrop-blur-xl z-50"
-        style={{
-          background: isLight ? 'rgba(255,255,255,0.88)' : 'rgba(26,26,26,0.8)',
-          borderTop: isLight ? '1px solid rgba(180,150,100,0.15)' : '1px solid rgba(255,255,255,0.06)',
-        }}
+        className="fixed bottom-0 left-0 right-0 z-50 px-4 md:px-6 pb-4"
+        style={{ background: 'transparent', pointerEvents: 'none' }}
       >
+        <div
+          className="backdrop-blur-3xl rounded-2xl md:rounded-3xl"
+          style={{
+            pointerEvents: 'auto',
+            background: isLight
+              ? 'rgba(255,255,255,0.92)'
+              : 'rgba(14,10,7,0.88)',
+            border: isLight
+              ? '1px solid rgba(180,150,100,0.18)'
+              : '1px solid rgba(232,168,73,0.1)',
+            boxShadow: isLight
+              ? '0 -2px 0 rgba(255,255,255,0.8) inset, 0 8px 40px rgba(100,80,50,0.1), 0 2px 8px rgba(100,80,50,0.06)'
+              : '0 1px 0 rgba(232,168,73,0.08) inset, 0 8px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)',
+          }}
+        >
         <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={handleEnded} />
         <div className="max-w-7xl mx-auto px-3 md:px-6 py-2 md:py-3">
           {/* Mobile: stacked layout */}
@@ -337,6 +349,7 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </>

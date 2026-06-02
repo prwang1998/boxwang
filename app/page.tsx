@@ -290,35 +290,54 @@ export default function Home() {
         return <ImageDownload />;
       case 'music-listen':
         return (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-8 animate-fade-in">
             {/* Music Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-display font-bold text-obsidian-50">全网歌曲免费听</h2>
-                <p className="text-sm text-obsidian-100 mt-1">多源聚合，畅听无阻</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {!showSearch && !selectedPlaylist && (
+            <div className="relative overflow-hidden">
+              {/* 装饰大字符 */}
+              <span className="absolute right-0 top-0 text-[120px] leading-none font-display font-bold select-none pointer-events-none opacity-[0.03] translate-y-[-20px]">♪</span>
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pt-6 pb-2">
+                <div>
+                  <span className="eyebrow">多源聚合</span>
+                  <h2 className="text-4xl sm:text-5xl font-display font-bold text-obsidian-50 leading-tight tracking-[-0.03em] italic mt-2">
+                    全网歌曲<br className="hidden sm:block" />免费听
+                  </h2>
+                  <p className="text-sm text-obsidian-100 mt-3 max-w-xs">多源聚合，畅听无阻，支持歌词同步</p>
+                </div>
+                <div className="flex items-center gap-2 pb-1">
+                  {!showSearch && !selectedPlaylist && (
+                    <button
+                      onClick={() => setShowSearch(true)}
+                      className="group px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]"
+                      style={{
+                        background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                        color: '#0c0907',
+                        boxShadow: '0 4px 20px rgba(232,168,73,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
+                      }}
+                    >
+                      搜索歌曲
+                      <span className="w-6 h-6 rounded-full bg-black/10 flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-110">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </span>
+                    </button>
+                  )}
                   <button
-                    onClick={() => setShowSearch(true)}
-                    className="px-4 py-2.5 bg-primary/15 text-primary border border-primary/20 rounded-xl hover:bg-primary/25 transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                    onClick={() => setShowMusicSettings(!showMusicSettings)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-110"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      color: 'rgba(255,255,255,0.4)',
+                    }}
+                    title="网易云登录设置"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    搜索歌曲
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowMusicSettings(!showMusicSettings)}
-                  className="w-10 h-10 rounded-xl bg-surface-elevated border border-white/[0.06] text-obsidian-100 hover:text-primary hover:border-primary/20 transition-all duration-200 flex items-center justify-center"
-                  title="网易云登录设置"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </button>
+                </div>
               </div>
             </div>
 
@@ -507,11 +526,13 @@ export default function Home() {
         return (
           <div className="animate-fade-in">
             {/* Hero Section */}
-            <div className="mb-10">
-              <h1 className="text-2xl sm:text-3xl font-display font-bold text-obsidian-50 mb-2">
+            <div className="relative overflow-hidden mb-10 pt-6 pb-2">
+              <span className="absolute right-0 top-0 text-[120px] leading-none font-display font-bold select-none pointer-events-none opacity-[0.03] translate-y-[-10px]">⇄</span>
+              <span className="eyebrow">在线工具</span>
+              <h1 className="text-4xl sm:text-5xl font-display font-bold text-obsidian-50 mb-3 mt-2 leading-tight tracking-[-0.03em] italic">
                 文档格式转换
               </h1>
-              <p className="text-obsidian-100 text-sm">上传 DOCX 或 PDF 文件，在线预览并转换格式</p>
+              <p className="text-obsidian-100 text-sm max-w-xs">上传 DOCX 或 PDF 文件，在线预览并转换格式</p>
             </div>
 
             <div className="max-w-4xl mx-auto space-y-6">
@@ -575,7 +596,7 @@ export default function Home() {
       </div>
 
       <Sidebar activeItem={activeItem} onItemClick={setActiveItem} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
-      <main className={`flex-1 p-4 md:p-8 pt-14 md:pt-8 pb-24 relative z-10 overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'}`}>
+      <main className={`flex-1 p-4 md:p-8 pt-14 md:pt-8 pb-36 relative z-10 overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'}`}>
         {/* Mobile hamburger button */}
         <button
           onClick={() => setSidebarOpen(true)}

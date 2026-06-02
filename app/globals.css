@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Noto+Serif+SC:wght@400;500;600;700&family=LXGW+WenKai:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Noto+Serif+SC:wght@400;500;600;700&family=LXGW+WenKai:wght@300;400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -45,7 +45,7 @@ html {
 }
 
 body {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
@@ -75,6 +75,108 @@ time,
 [data-numeric] {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
+}
+
+/* =====================================================
+   EYEBROW TAGS — Section pre-labels
+   ===================================================== */
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: rgba(232, 168, 73, 0.1);
+  color: #e8a849;
+  border: 1px solid rgba(232, 168, 73, 0.2);
+  margin-bottom: 0.75rem;
+}
+
+[data-theme="light"] .eyebrow {
+  background: rgba(139, 105, 20, 0.08);
+  color: #8b6914;
+  border-color: rgba(139, 105, 20, 0.2);
+}
+
+/* =====================================================
+   LIGHT THEME — Noise texture & Ambient depth
+   ===================================================== */
+
+/* 浅色模式纸张感 noise 纹理 */
+[data-theme="light"] body::after {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  mix-blend-mode: multiply;
+}
+
+/* 浅色模式卡片环境光晕（替代边框依赖） */
+[data-theme="light"] .card-ambient {
+  box-shadow:
+    0 1px 2px rgba(100, 80, 50, 0.04),
+    0 4px 24px rgba(100, 80, 50, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  border: 1px solid rgba(180, 150, 100, 0.1) !important;
+}
+
+/* =====================================================
+   MOTION — Premium cubic-bezier + Scroll Reveal
+   ===================================================== */
+
+/* 全局 transition 升级为物理弹性曲线 */
+.transition-all,
+.transition-colors,
+.transition-transform,
+.transition-opacity {
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1) !important;
+}
+
+/* Scroll reveal — IntersectionObserver 驱动 */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(4px);
+  transition: opacity 0.8s cubic-bezier(0.32, 0.72, 0, 1),
+              transform 0.8s cubic-bezier(0.32, 0.72, 0, 1),
+              filter 0.8s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* 歌单卡片错开入场 */
+.playlist-card-reveal {
+  opacity: 0;
+  transform: translateY(20px) scale(0.97);
+  transition: opacity 0.6s cubic-bezier(0.32, 0.72, 0, 1),
+              transform 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.playlist-card-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Sidebar stagger 子菜单项 */
+.sidebar-child-item {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+              transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  transition-delay: var(--stagger-delay, 0ms);
+}
+
+.sidebar-child-item.is-visible {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* Glass effect */
@@ -997,6 +1099,28 @@ input[type="range"]::-moz-range-thumb {
 /* =====================================================
    LIGHT THEME — Global Overrides
    ===================================================== */
+
+/* 浅色模式卡片：去 border 依赖，改为暖色投影层次 */
+[data-theme="light"] .bg-surface\/40,
+[data-theme="light"] .bg-surface\/60 {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: transparent !important;
+  box-shadow:
+    0 1px 3px rgba(120, 85, 50, 0.04),
+    0 4px 16px rgba(120, 85, 50, 0.06),
+    0 12px 40px rgba(120, 85, 50, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+/* MusicList 歌曲列表行 */
+[data-theme="light"] .bg-surface\/40.rounded-xl,
+[data-theme="light"] .rounded-xl.bg-surface\/40 {
+  background: #ffffff !important;
+  border: none !important;
+  box-shadow:
+    0 1px 4px rgba(120, 85, 50, 0.05),
+    0 4px 20px rgba(120, 85, 50, 0.05) !important;
+}
 
 /* 覆盖 obsidian 色系 */
 [data-theme="light"] .bg-obsidian { background: var(--bg-primary) !important; }

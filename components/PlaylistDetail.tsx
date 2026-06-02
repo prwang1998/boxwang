@@ -78,17 +78,27 @@ export default function PlaylistDetail({ name, cover, tracks, onPlay, onPlayAll,
             <p className="text-sm" style={{ color: isLight ? '#6b5e4f' : 'rgba(255,255,255,0.5)' }}>{tracks.length} 首歌曲</p>
             <button
               onClick={onPlayAll}
-              className="mt-5 px-6 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 w-fit font-medium text-sm shadow-lg active:scale-[0.98]"
+              className="group mt-5 px-5 py-2.5 rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center gap-2 w-fit font-semibold text-sm active:scale-[0.97] tracking-[-0.01em]"
               style={{
-                background: isLight ? 'linear-gradient(135deg, #8b6914, #a67c1a)' : undefined,
-                color: '#fff',
-                boxShadow: isLight ? '0 4px 12px rgba(139,105,20,0.25)' : undefined,
+                background: isLight
+                  ? 'linear-gradient(135deg, #8b6914, #a67c1a)'
+                  : 'linear-gradient(135deg, #e8a849, #d4943a)',
+                color: isLight ? '#fff' : '#0f0f0f',
+                boxShadow: isLight
+                  ? '0 4px 20px rgba(139,105,20,0.3), inset 0 1px 0 rgba(255,255,255,0.15)'
+                  : '0 4px 20px rgba(232,168,73,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
               }}
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-              </svg>
               播放全部
+              {/* Button-in-Button trailing icon */}
+              <span
+                className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-110"
+                style={{ background: 'rgba(0,0,0,0.12)' }}
+              >
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                </svg>
+              </span>
             </button>
           </div>
         </div>
