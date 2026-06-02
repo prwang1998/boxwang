@@ -258,6 +258,8 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
         className="fixed bottom-0 left-0 right-0 z-50 px-4 md:px-6 pb-4"
         style={{ background: 'transparent', pointerEvents: 'none' }}
       >
+        {/* 封面色彩环境光晕 */}
+        <div id="player-ambient-glow" className="player-ambient-glow" />
         <div
           className="backdrop-blur-3xl rounded-2xl md:rounded-3xl"
           style={{

@@ -468,6 +468,7 @@ interface Chapter {
 
 interface NovelReaderProps {
   onSidebarCollapse?: (collapsed: boolean) => void;
+  sidebarCollapsed?: boolean;
   playlist?: Song[];
   currentSong?: Song | null;
 }
@@ -567,7 +568,7 @@ const FONTS = [
   { key: 'lishu', name: '隶书', family: '"LiSu", "STLiti", "隶书", serif' },
 ];
 
-export default function NovelReader({ onSidebarCollapse, playlist = [], currentSong = null }: NovelReaderProps) {
+export default function NovelReader({ onSidebarCollapse, sidebarCollapsed = false, playlist = [], currentSong = null }: NovelReaderProps) {
   const { theme: globalTheme } = useTheme();
   const [keyword, setKeyword] = useState('');
   const [books, setBooks] = useState<Book[]>([]);
@@ -987,7 +988,18 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
         {showChapters && (
           <>
             <div className="fixed inset-0 z-40 bg-black/30" onClick={() => setShowChapters(false)}></div>
-            <div className="fixed top-0 bottom-0 z-50 w-72 overflow-y-auto shadow-2xl" style={{ background: theme.drawerBg, left: '72px' }}>
+            <div
+              className="fixed top-0 bottom-0 z-50 w-72 overflow-y-auto shadow-2xl"
+              style={{
+                background: theme.drawerBg,
+                // 移动端侧边栏是 overlay，不占位，从 0 开始
+                // 桌面端根据侧边栏收起/展开动态计算
+                left: typeof window !== 'undefined' && window.innerWidth < 768
+                  ? '0px'
+                  : sidebarCollapsed ? '72px' : '256px',
+                transition: 'left 0.3s cubic-bezier(0.32,0.72,0,1)',
+              }}
+            >
               <div className="p-4 border-b" style={{ borderColor: theme.border }}>
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold" style={{ color: theme.text }}>目录</h3>

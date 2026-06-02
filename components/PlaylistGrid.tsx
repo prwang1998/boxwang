@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Playlist } from '@/types/music';
 import { useTheme } from '@/app/theme-context';
+import CountUp from './CountUp';
 
 type LayoutMode = '3' | '5';
 
@@ -57,16 +58,24 @@ export default function PlaylistGrid({ playlists, onPlaylistClick }: PlaylistGri
           style={{ '--reveal-delay': `${index * 40}ms` } as React.CSSProperties}
           onClick={() => onPlaylistClick(playlist)}
         >
-          {/* Double-Bezel outer shell */}
+          {/* Double-Bezel outer shell — Spotlight Border */}
           <div
-            className="relative aspect-square rounded-2xl p-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.03]"
+            className="spotlight-border relative aspect-square rounded-2xl p-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.03]"
             style={{
               background: isLight ? 'rgba(180,150,100,0.06)' : 'rgba(255,255,255,0.04)',
-              border: isLight ? '1px solid rgba(180,150,100,0.12)' : '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid transparent',
+              backgroundClip: 'padding-box',
               boxShadow: isLight
                 ? 'var(--card-shadow-light, 0 2px 20px rgba(100,80,50,0.06))'
                 : 'var(--card-shadow-dark, 0 2px 20px rgba(0,0,0,0.3))',
               transition: 'all 0.5s cubic-bezier(0.32,0.72,0,1)',
+            }}
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+              const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+              e.currentTarget.style.setProperty('--spotlight-x', `${x}%`);
+              e.currentTarget.style.setProperty('--spotlight-y', `${y}%`);
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLElement).style.boxShadow = isLight
@@ -118,7 +127,11 @@ export default function PlaylistGrid({ playlists, onPlaylistClick }: PlaylistGri
                   <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                   </svg>
-                  {formatPlayCount(playlist.playCount)}
+                  <CountUp
+                    value={playlist.playCount}
+                    format={formatPlayCount}
+                    duration={800}
+                  />
                 </div>
               )}
               {/* Hover overlay + play button */}
