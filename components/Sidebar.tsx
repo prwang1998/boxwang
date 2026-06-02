@@ -84,6 +84,8 @@ export default function Sidebar({ activeItem, onItemClick, isOpen, onClose, coll
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [collapsedState, setCollapsedState] = useState(false);
   const collapsed = collapsedProp !== undefined ? collapsedProp : collapsedState;
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const setCollapsed = (val: boolean | ((prev: boolean) => boolean)) => {
     const next = typeof val === 'function' ? val(collapsed) : val;
     setCollapsedState(next);
@@ -170,22 +172,33 @@ export default function Sidebar({ activeItem, onItemClick, isOpen, onClose, coll
                 onClick={() => item.children ? toggleExpand(item.id) : handleItemClick(item.id)}
                 className={`
                   w-full flex items-center gap-3 p-2.5 rounded-xl
-                  transition-all duration-200
-                  ${activeItem === item.id || expandedItems.includes(item.id)
-                    ? 'bg-white/[0.06] text-obsidian-50'
-                    : 'text-obsidian-100 hover:bg-white/[0.04] hover:text-obsidian-50'
-                  }
+                  transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                   ${collapsed ? 'md:justify-center' : ''}
                 `}
+                style={
+                  activeItem === item.id || expandedItems.includes(item.id)
+                    ? {
+                        background: isLight
+                          ? 'rgba(139,105,20,0.08)'
+                          : 'linear-gradient(90deg, rgba(232,168,73,0.1) 0%, rgba(232,168,73,0.03) 100%)',
+                        color: isLight ? '#8b6914' : '#e8a849',
+                        borderLeft: isLight ? '3px solid #8b6914' : '3px solid #e8a849',
+                        paddingLeft: '9px',
+                      }
+                    : {
+                        color: isLight ? '#7a6248' : 'rgba(255,255,255,0.45)',
+                      }
+                }
                 title={collapsed ? item.label : undefined}
               >
                 <span className="text-lg flex-shrink-0">{item.icon}</span>
-                <span className={`font-medium text-sm flex-1 text-left ${collapsed ? 'md:hidden' : ''}`}>{item.label}</span>
+                <span className={`font-semibold text-sm flex-1 text-left tracking-[-0.01em] ${collapsed ? 'md:hidden' : ''}`}>{item.label}</span>
                 {item.children && (
                   <svg
-                    className={`w-3.5 h-3.5 text-obsidian-100 transition-transform duration-200 ${collapsed ? 'md:hidden' : ''} ${
+                    className={`w-3.5 h-3.5 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${collapsed ? 'md:hidden' : ''} ${
                       expandedItems.includes(item.id) ? 'rotate-90' : ''
                     }`}
+                    style={{ color: isLight ? 'rgba(139,105,20,0.4)' : 'rgba(255,255,255,0.25)' }}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -194,7 +207,7 @@ export default function Sidebar({ activeItem, onItemClick, isOpen, onClose, coll
                   </svg>
                 )}
                 {activeItem === item.id && !item.children && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-glow" />
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full shadow-glow" style={{ background: isLight ? '#8b6914' : '#e8a849' }} />
                 )}
               </button>
 
@@ -205,20 +218,30 @@ export default function Sidebar({ activeItem, onItemClick, isOpen, onClose, coll
                     <button
                       key={child.id}
                       onClick={() => handleItemClick(child.id)}
-                      className={`
-                        w-full flex items-center gap-2.5 p-2 rounded-lg
-                        text-sm transition-all duration-200 animate-slide-in-left
-                        ${activeItem === child.id
-                          ? 'bg-primary/15 text-primary font-medium shadow-[inset_0_0_0_1px_rgba(232,168,73,0.15)]'
-                          : 'text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04]'
-                        }
-                      `}
-                      style={{ animationDelay: `${childIndex * 0.03}s` }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-lg text-sm transition-all duration-500 sidebar-child-item is-visible"
+                      style={
+                        activeItem === child.id
+                          ? {
+                              background: isLight
+                                ? 'rgba(139,105,20,0.08)'
+                                : 'linear-gradient(90deg, rgba(232,168,73,0.1) 0%, rgba(232,168,73,0.03) 100%)',
+                              color: isLight ? '#8b6914' : '#e8a849',
+                              fontWeight: 600,
+                              borderLeft: isLight ? '2px solid #8b6914' : '2px solid #e8a849',
+                              paddingLeft: '7px',
+                              boxShadow: isLight ? 'inset 0 0 0 1px rgba(139,105,20,0.12)' : 'inset 0 0 0 1px rgba(232,168,73,0.1)',
+                              ['--stagger-delay' as string]: `${childIndex * 40}ms`,
+                            }
+                          : {
+                              color: isLight ? '#7a6248' : 'rgba(255,255,255,0.45)',
+                              ['--stagger-delay' as string]: `${childIndex * 40}ms`,
+                            }
+                      }
                     >
                       <span className="text-xs opacity-70">{child.icon}</span>
-                      <span>{child.label}</span>
+                      <span className="tracking-[-0.01em]">{child.label}</span>
                       {activeItem === child.id && (
-                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-glow" />
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full shadow-glow" style={{ background: isLight ? '#8b6914' : '#e8a849' }} />
                       )}
                     </button>
                   ))}

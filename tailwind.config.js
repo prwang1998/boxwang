@@ -37,7 +37,7 @@ module.exports = {
       },
       fontFamily: {
         display: ['"Noto Serif SC"', 'Georgia', 'serif'],
-        body: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        body: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
         lyric: ['"LXGW WenKai"', '"Noto Serif SC"', 'Georgia', 'serif'],
       },
       boxShadow: {
