@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { validateFile } from '@/lib/file-utils';
+import { useToast } from '@/app/toast-context';
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
@@ -10,6 +11,7 @@ interface FileUploadProps {
 
 export default function FileUpload({ onFileSelect, disabled }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const { toast } = useToast();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -49,7 +51,7 @@ export default function FileUpload({ onFileSelect, disabled }: FileUploadProps) 
   const handleFile = (file: File) => {
     const validation = validateFile(file);
     if (!validation.valid) {
-      alert(validation.error);
+      toast(validation.error || '文件不支持', 'error');
       return;
     }
     onFileSelect(file);

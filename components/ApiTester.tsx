@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useToast } from '@/app/toast-context';
 
 export default function ApiTester() {
   const [url, setUrl] = useState('https://music.zkkp.nyc.mn/music/search?page=1&type=song&q=%E8%96%9B%E4%B9%8B%E8%B0%A6&sources=netease&sources=qq&sources=kugou&sources=kuwo&sources=migu');
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { toast } = useToast();
 
   const handleTest = async () => {
     if (!url.trim()) {
@@ -40,7 +42,7 @@ export default function ApiTester() {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result);
-    alert('已复制到剪贴板');
+    toast('已复制到剪贴板', 'success');
   };
 
   return (
