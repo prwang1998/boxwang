@@ -17,7 +17,42 @@ export interface NovelChapter {
   url: string;
 }
 
-const BASE = 'https://www.biquge5.com';
+export interface NovelSource {
+  id: string;
+  name: string;
+  url: string;
+  searchPath: string; // 搜索路径，如 /search.php?q=
+  enabled: boolean;
+}
+
+// 预置小说源
+const DEFAULT_SOURCES: NovelSource[] = [
+  {
+    id: 'biquge5',
+    name: '笔趣阁5',
+    url: 'https://www.biquge5.com',
+    searchPath: '/search.php?q=',
+    enabled: true,
+  },
+  {
+    id: 'biquge365',
+    name: '笔趣阁365',
+    url: 'https://www.biquge365.com',
+    searchPath: '/search.php?q=',
+    enabled: false,
+  },
+  {
+    id: 'xbiquge',
+    name: '新笔趣阁',
+    url: 'https://www.xbiquge.so',
+    searchPath: '/search.php?q=',
+    enabled: false,
+  },
+];
+
+export function getDefaultSources(): NovelSource[] {
+  return DEFAULT_SOURCES;
+}
 
 const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -33,6 +68,7 @@ async function safeFetch(url: string, timeout = 15000): Promise<string | null> {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
+    const referer = new URL(url).origin;
     const resp = await fetch(url, {
       headers: {
         'User-Agent': randomUA(),
@@ -40,7 +76,7 @@ async function safeFetch(url: string, timeout = 15000): Promise<string | null> {
         'Accept-Language': 'zh-CN,zh;q=0.9,zh-TW;q=0.8,en;q=0.7',
         'Accept-Encoding': 'identity',
         'Connection': 'keep-alive',
-        'Referer': BASE,
+        'Referer': referer,
       },
       signal: controller.signal,
       redirect: 'follow',
@@ -61,10 +97,34 @@ function resolveUrl(href: string, base: string): string {
 
 // ==================== 搜索 ====================
 
-export async function searchNovels(keyword: string): Promise<NovelBook[]> {
-  const url = `${BASE}/search.php?q=${encodeURIComponent(keyword)}`;
+export async function searchNovels(keyword: string, sources?: NovelSource[]): Promise<NovelBook[]> {
+  const activeSources = sources?.filter(s => s.enabled) || DEFAULT_SOURCES.filter(s => s.enabled);
+
+  // 如果没有启用的源，使用默认源
+  if (activeSources.length === 0) {
+    return searchFromSource(keyword, DEFAULT_SOURCES[0]);
+  }
+
+  // 并行搜索所有启用的源
+  const results = await Promise.allSettled(
+    activeSources.map(source => searchFromSource(keyword, source))
+  );
+
+  // 合并结果
+  const allBooks: NovelBook[] = [];
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      allBooks.push(...result.value);
+    }
+  }
+
+  return allBooks.length > 0 ? allBooks : generateFallbackBooks(keyword);
+}
+
+async function searchFromSource(keyword: string, source: NovelSource): Promise<NovelBook[]> {
+  const url = `${source.url}${source.searchPath}${encodeURIComponent(keyword)}`;
   const html = await safeFetch(url);
-  if (!html) return generateFallbackBooks(keyword);
+  if (!html) return [];
 
   const root = parse(html);
   const books: NovelBook[] = [];
@@ -101,7 +161,7 @@ export async function searchNovels(keyword: string): Promise<NovelBook[]> {
 
       // 获取封面
       const imgEl = dl?.querySelector('img') || a.parentNode?.querySelector('img');
-      const cover = imgEl?.getAttribute('src') || `${BASE}/images/${bookMatch[1].replace('_', '/')}/${bookMatch[1].split('_')[1]}s.jpg`;
+      const cover = imgEl?.getAttribute('src') || `${source.url}/images/${bookMatch[1].replace('_', '/')}/${bookMatch[1].split('_')[1]}s.jpg`;
 
       // 获取最新章节
       let lastChapter = '';
@@ -125,22 +185,25 @@ export async function searchNovels(keyword: string): Promise<NovelBook[]> {
         id: bookMatch[1],
         name: cleanName || text,
         author,
-        cover: cover.startsWith('http') ? cover : resolveUrl(cover, BASE),
+        cover: cover.startsWith('http') ? cover : resolveUrl(cover, source.url),
         description: '',
         lastChapter,
-        source: 'biquge5',
-        url: `${BASE}${href}`,
+        source: source.id,
+        url: `${source.url}${href}`,
       });
     }
   }
 
-  return books.length > 0 ? books : generateFallbackBooks(keyword);
+  return books;
 }
 
 // ==================== 推荐 ====================
 
-export async function getRecommendNovels(): Promise<NovelBook[]> {
-  const html = await safeFetch(BASE);
+export async function getRecommendNovels(sources?: NovelSource[]): Promise<NovelBook[]> {
+  const activeSources = sources?.filter(s => s.enabled) || DEFAULT_SOURCES.filter(s => s.enabled);
+  const primarySource = activeSources[0] || DEFAULT_SOURCES[0];
+
+  const html = await safeFetch(primarySource.url);
   if (!html) return generateFallbackRecommend();
 
   const root = parse(html);
@@ -159,7 +222,7 @@ export async function getRecommendNovels(): Promise<NovelBook[]> {
       const cleanName = text.replace(/^\[[^\]]+\]/, '').trim();
       const parent = a.parentNode;
       const imgEl = parent?.querySelector('img');
-      const cover = imgEl?.getAttribute('src') || `${BASE}/images/${bookMatch[1].replace('_', '/')}/${bookMatch[1].split('_')[1]}s.jpg`;
+      const cover = imgEl?.getAttribute('src') || `${primarySource.url}/images/${bookMatch[1].replace('_', '/')}/${bookMatch[1].split('_')[1]}s.jpg`;
 
       // 获取最新章节
       const siblingLinks = parent?.querySelectorAll('a') || [];
@@ -176,11 +239,11 @@ export async function getRecommendNovels(): Promise<NovelBook[]> {
         id: bookMatch[1],
         name: cleanName || text,
         author: '',
-        cover: cover.startsWith('http') ? cover : resolveUrl(cover, BASE),
+        cover: cover.startsWith('http') ? cover : resolveUrl(cover, primarySource.url),
         description: '',
         lastChapter,
-        source: 'biquge5',
-        url: `${BASE}${href}`,
+        source: primarySource.id,
+        url: `${primarySource.url}${href}`,
       });
     }
 
@@ -192,13 +255,14 @@ export async function getRecommendNovels(): Promise<NovelBook[]> {
 
 // ==================== 书籍详情 ====================
 
-export async function getBookDetail(bookUrl: string): Promise<{ book: Partial<NovelBook>; chapters: NovelChapter[] } | null> {
+export async function getBookDetail(bookUrl: string, sourceUrl?: string): Promise<{ book: Partial<NovelBook>; chapters: NovelChapter[] } | null> {
   if (!bookUrl) return null;
 
   const html = await safeFetch(bookUrl);
   if (!html) return null;
 
   const root = parse(html);
+  const baseUrl = sourceUrl || new URL(bookUrl).origin;
 
   // 从 URL 提取 bookId
   const bookIdMatch = bookUrl.match(/\/(\d+_\d+)\//);
@@ -216,7 +280,7 @@ export async function getBookDetail(bookUrl: string): Promise<{ book: Partial<No
   const coverImg = root.querySelector('img[src*="/images/"]');
   let cover = coverImg?.getAttribute('src') || '';
   if (cover && !cover.startsWith('http')) {
-    cover = `${BASE}${cover}`;
+    cover = `${baseUrl}${cover}`;
   }
 
   // 提取简介 - 从页面文本中找
@@ -265,7 +329,7 @@ export async function getBookDetail(bookUrl: string): Promise<{ book: Partial<No
         chapters.push({
           id: href.match(/\/(\d+)\.html/)?.[1] || '',
           title,
-          url: `${BASE}${href}`,
+          url: `${baseUrl}${href}`,
         });
       }
     }

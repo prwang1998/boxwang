@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { Playlist } from '@/types/music';
+import { useTheme } from '@/app/theme-context';
 
 type LayoutMode = '3' | '5';
 
@@ -17,6 +18,8 @@ const LAYOUT_OPTIONS: { key: LayoutMode; label: string }[] = [
 
 export default function PlaylistGrid({ playlists, onPlaylistClick }: PlaylistGridProps) {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('3');
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   const formatPlayCount = (count: number): string => {
     if (count >= 100000000) return `${(count / 100000000).toFixed(1)}亿`;
@@ -52,7 +55,13 @@ export default function PlaylistGrid({ playlists, onPlaylistClick }: PlaylistGri
             )}
             {/* Play count overlay */}
             {playlist.playCount > 0 && (
-              <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-lg flex items-center gap-1">
+              <div
+                className="absolute top-2 right-2 backdrop-blur-sm text-[10px] px-2 py-1 rounded-lg flex items-center gap-1"
+                style={{
+                  background: isLight ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)',
+                  color: isLight ? '#6b5e4f' : '#fff',
+                }}
+              >
                 <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                 </svg>
@@ -60,8 +69,11 @@ export default function PlaylistGrid({ playlists, onPlaylistClick }: PlaylistGri
               </div>
             )}
             {/* Hover overlay */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-              <div className="w-10 h-10 rounded-full bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-300 shadow-glow">
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center"
+              style={{ background: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.2)' }}
+            >
+              <div className="w-10 h-10 rounded-full bg-primary/90 flex items-center justify-center scale-75 group-hover:scale-100 transition-all duration-300 shadow-glow">
                 <svg className="w-4 h-4 text-obsidian-700 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                 </svg>

@@ -64,6 +64,11 @@ const menuItems: MenuItem[] = [
     label: '关于',
     icon: 'ℹ️',
   },
+  {
+    id: 'settings',
+    label: '设置',
+    icon: '⚙️',
+  },
 ];
 
 interface SidebarProps {
