@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoxWang 风格预览 · 5 套方案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;700&family=Playfair+Display:wght@400;500;700&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0a0a0a; color: #fff; }
+
+/* ── NAV ── */
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(10,10,10,0.9); backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem; height: 56px;
+}
+.top-nav h1 { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.8); letter-spacing: -0.01em; }
+.nav-pills { display: flex; gap: 6px; }
+.nav-pill {
+  padding: 5px 14px; border-radius: 9999px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid transparent;
+  transition: all 0.3s cubic-bezier(0.32,0.72,0,1);
+  color: rgba(255,255,255,0.5);
+}
+.nav-pill:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.nav-pill.active { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.1); }
+.nav-pill[data-style="A"] { color: #e8a849; }
+.nav-pill[data-style="A"].active { background: rgba(232,168,73,0.15); border-color: rgba(232,168,73,0.3); }
+.nav-pill[data-style="B"] { color: #60a5fa; }
+.nav-pill[data-style="B"].active { background: rgba(96,165,250,0.15); border-color: rgba(96,165,250,0.3); }
+.nav-pill[data-style="C"] { color: #a78bfa; }
+.nav-pill[data-style="C"].active { background: rgba(167,139,250,0.15); border-color: rgba(167,139,250,0.3); }
+.nav-pill[data-style="D"] { color: #34d399; }
+.nav-pill[data-style="D"].active { background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.3); }
+.nav-pill[data-style="E"] { color: #f472b6; }
+.nav-pill[data-style="E"].active { background: rgba(244,114,182,0.15); border-color: rgba(244,114,182,0.3); }
+
+/* ── SECTION WRAPPER ── */
+.section-header {
+  padding: 80px 2rem 0;
+  text-align: center;
+}
+.section-header .style-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 16px; border-radius: 9999px; font-size: 11px;
+  font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.section-header h2 { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 8px; }
+.section-header p { font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+.ref-links { display: flex; justify-content: center; gap: 16px; margin-bottom: 40px; flex-wrap: wrap; }
+.ref-link {
+  font-size: 11px; color: rgba(255,255,255,0.35); text-decoration: none;
+  padding: 3px 10px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+  transition: all 0.2s;
+}
+.ref-link:hover { color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.2); }
+
+/* ── PREVIEW CANVAS ── */
+.preview-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  max-width: 1200px; margin: 0 auto 100px; padding: 0 2rem;
+}
+.preview-panel {
+  border-radius: 20px; overflow: hidden; position: relative;
+  min-height: 600px;
+}
+.preview-label {
+  position: absolute; top: 16px; left: 16px; z-index: 10;
+  padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════
+   STYLE A · 黑金精工 × 奶白奢华
+   ═══════════════════════════════════════════ */
+.a-dark {
+  background: #0C0907;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.a-light {
+  background: #FAF8F5;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.a-dark .preview-label { background: rgba(232,168,73,0.15); color: #e8a849; border: 1px solid rgba(232,168,73,0.2); }
+.a-light .preview-label { background: rgba(139,105,20,0.1); color: #8b6914; border: 1px solid rgba(139,105,20,0.2); }
+
+/* sidebar */
+.a-dark .sidebar { background: rgba(28,21,16,0.8); border-right: 1px solid rgba(212,168,75,0.08); }
+.a-light .sidebar { background: rgba(255,249,240,0.9); border-right: 1px solid rgba(180,150,100,0.15); }
+.a-dark .sidebar-logo { background: linear-gradient(135deg,#e8a849,#d4943a); color: #0c0907; }
+.a-light .sidebar-logo { background: linear-gradient(135deg,#8b6914,#a67c1a); color: #fff; }
+.a-dark .sidebar-title { color: rgba(245,240,235,0.9); font-family: 'Noto Serif SC', serif; }
+.a-light .sidebar-title { color: #2c1f14; font-family: 'Noto Serif SC', serif; }
+.a-dark .nav-item { color: rgba(255,255,255,0.45); }
+.a-light .nav-item { color: #7a6248; }
+.a-dark .nav-item.active { background: rgba(232,168,73,0.1); color: #e8a849; border-left: 2px solid #e8a849; }
+.a-light .nav-item.active { background: rgba(139,105,20,0.08); color: #8b6914; border-left: 2px solid #8b6914; }
+
+/* content */
+.a-dark .page-bg { background: #0C0907; }
+.a-light .page-bg { background: #FAF8F5; }
+.a-dark .eyebrow-tag { background: rgba(232,168,73,0.1); color: #e8a849; border: 1px solid rgba(232,168,73,0.2); }
+.a-light .eyebrow-tag { background: rgba(139,105,20,0.08); color: #8b6914; border: 1px solid rgba(139,105,20,0.18); }
+.a-dark .page-title { color: #f5f0eb; font-family: 'Noto Serif SC', serif; }
+.a-light .page-title { color: #2c1f14; font-family: 'Playfair Display', 'Noto Serif SC', serif; }
+.a-dark .page-sub { color: rgba(255,255,255,0.35); }
+.a-light .page-sub { color: #7a6248; }
+
+/* cards */
+.a-dark .card-shell { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 1px 0 rgba(255,255,255,0.04); }
+.a-light .card-shell { background: rgba(180,150,100,0.06); border: 1px solid rgba(180,150,100,0.12); box-shadow: 0 2px 20px rgba(120,85,50,0.06), inset 0 1px 0 rgba(255,255,255,0.7); }
+.a-dark .card-inner { background: rgba(255,255,255,0.02); box-shadow: inset 0 1px 1px rgba(255,255,255,0.06); }
+.a-light .card-inner { background: #ffffff; box-shadow: inset 0 1px 1px rgba(255,255,255,0.9); }
+.a-dark .card-title { color: rgba(245,240,235,0.9); }
+.a-light .card-title { color: #2c1f14; font-family: 'Playfair Display', serif; }
+.a-dark .card-sub { color: rgba(255,255,255,0.35); }
+.a-light .card-sub { color: #9a7e5f; }
+
+/* btn */
+.a-dark .btn-primary { background: linear-gradient(135deg,#e8a849,#d4943a); color: #0c0907; box-shadow: 0 4px 20px rgba(232,168,73,0.25), inset 0 1px 0 rgba(255,255,255,0.15); }
+.a-light .btn-primary { background: linear-gradient(135deg,#8b6914,#a67c1a); color: #fff; box-shadow: 0 4px 20px rgba(139,105,20,0.25), inset 0 1px 0 rgba(255,255,255,0.15); }
+
+/* player */
+.a-dark .player-bar { background: rgba(18,13,9,0.9); border: 1px solid rgba(212,168,75,0.1); box-shadow: 0 -4px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,168,75,0.08); }
+.a-light .player-bar { background: rgba(255,252,248,0.95); border: 1px solid rgba(180,150,100,0.15); box-shadow: 0 -4px 40px rgba(120,85,50,0.08), inset 0 1px 0 rgba(255,255,255,0.9); }
+.a-dark .player-title { color: #f5f0eb; }
+.a-light .player-title { color: #2c1f14; }
+.a-dark .player-sub { color: rgba(255,255,255,0.4); }
+.a-light .player-sub { color: #9a7e5f; }
+.a-dark .progress-track { background: rgba(255,255,255,0.08); }
+.a-light .progress-track { background: rgba(139,105,20,0.12); }
+.a-dark .progress-fill { background: linear-gradient(90deg,#e8a849,#f0c878); }
+.a-light .progress-fill { background: linear-gradient(90deg,#8b6914,#a67c1a); }
+.a-dark .play-btn { background: linear-gradient(135deg,#e8a849,#d4943a); color: #0c0907; }
+.a-light .play-btn { background: linear-gradient(135deg,#8b6914,#a67c1a); color: #fff; }
+
+/* ═══════════════════════════════════════════
+   STYLE B · 极简精密 (Linear/Vercel)
+   ═══════════════════════════════════════════ */
+.b-dark { background: #0a0a0a; font-family: 'Inter', sans-serif; }
+.b-light { background: #f4f4f6; font-family: 'Inter', sans-serif; }
+.b-dark .preview-label { background: rgba(96,165,250,0.1); color: #60a5fa; border: 1px solid rgba(96,165,250,0.2); }
+.b-light .preview-label { background: rgba(37,99,235,0.08); color: #2563eb; border: 1px solid rgba(37,99,235,0.15); }
+
+.b-dark .sidebar { background: #111111; border-right: 1px solid #1f1f1f; }
+.b-light .sidebar { background: #ffffff; border-right: 1px solid #e5e5e5; }
+.b-dark .sidebar-logo { background: #1e1e1e; color: #fff; border: 1px solid #2a2a2a; }
+.b-light .sidebar-logo { background: #111; color: #fff; }
+.b-dark .sidebar-title { color: rgba(255,255,255,0.8); font-weight: 600; }
+.b-light .sidebar-title { color: #111; font-weight: 600; }
+.b-dark .nav-item { color: rgba(255,255,255,0.4); }
+.b-light .nav-item { color: #6b7280; }
+.b-dark .nav-item.active { background: rgba(255,255,255,0.05); color: #fff; }
+.b-light .nav-item.active { background: #f3f4f6; color: #111; font-weight: 600; }
+
+.b-dark .page-bg { background: #0a0a0a; }
+.b-light .page-bg { background: #f4f4f6; }
+.b-dark .eyebrow-tag { background: transparent; color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.1); }
+.b-light .eyebrow-tag { background: transparent; color: #6b7280; border: 1px solid #d1d5db; }
+.b-dark .page-title { color: #fff; font-weight: 800; letter-spacing: -0.04em; }
+.b-light .page-title { color: #111; font-weight: 800; letter-spacing: -0.04em; }
+.b-dark .page-sub { color: rgba(255,255,255,0.3); }
+.b-light .page-sub { color: #9ca3af; }
+
+.b-dark .card-shell { background: #141414; border: 1px solid #222; }
+.b-light .card-shell { background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.b-dark .card-inner { background: #141414; }
+.b-light .card-inner { background: #fff; }
+.b-dark .card-title { color: #fff; font-weight: 600; }
+.b-light .card-title { color: #111; font-weight: 600; }
+.b-dark .card-sub { color: rgba(255,255,255,0.3); }
+.b-light .card-sub { color: #9ca3af; }
+.b-dark .btn-primary { background: #fff; color: #000; }
+.b-light .btn-primary { background: #111; color: #fff; }
+.b-dark .player-bar { background: #111; border: 1px solid #1f1f1f; }
+.b-light .player-bar { background: #fff; border-top: 1px solid #e5e7eb; }
+.b-dark .player-title { color: #fff; font-weight: 600; }
+.b-light .player-title { color: #111; font-weight: 600; }
+.b-dark .player-sub { color: rgba(255,255,255,0.35); }
+.b-light .player-sub { color: #9ca3af; }
+.b-dark .progress-track { background: #222; }
+.b-light .progress-track { background: #e5e7eb; }
+.b-dark .progress-fill { background: #fff; }
+.b-light .progress-fill { background: #111; }
+.b-dark .play-btn { background: #fff; color: #000; }
+.b-light .play-btn { background: #111; color: #fff; }
+
+/* ═══════════════════════════════════════════
+   STYLE C · 暗夜紫霾 (Framer/Perplexity)
+   ═══════════════════════════════════════════ */
+.c-dark { background: #07071a; font-family: 'Outfit', sans-serif; }
+.c-light { background: #f4f3ff; font-family: 'Outfit', sans-serif; }
+.c-dark .preview-label { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+.c-light .preview-label { background: rgba(109,40,217,0.08); color: #6d28d9; border: 1px solid rgba(109,40,217,0.15); }
+
+.c-dark .sidebar { background: rgba(10,10,30,0.95); border-right: 1px solid rgba(139,92,246,0.1); }
+.c-light .sidebar { background: #fff; border-right: 1px solid rgba(109,40,217,0.1); }
+.c-dark .sidebar-logo { background: linear-gradient(135deg,#7c3aed,#4f46e5); color: #fff; }
+.c-light .sidebar-logo { background: linear-gradient(135deg,#7c3aed,#4f46e5); color: #fff; }
+.c-dark .sidebar-title { color: rgba(255,255,255,0.85); font-weight: 600; }
+.c-light .sidebar-title { color: #1e1b4b; font-weight: 600; }
+.c-dark .nav-item { color: rgba(255,255,255,0.4); }
+.c-light .nav-item { color: #6b7280; }
+.c-dark .nav-item.active { background: rgba(124,58,237,0.15); color: #a78bfa; border-left: 2px solid #7c3aed; }
+.c-light .nav-item.active { background: rgba(109,40,217,0.06); color: #6d28d9; border-left: 2px solid #7c3aed; }
+
+.c-dark .page-bg { background: #07071a; }
+.c-light .page-bg { background: #f4f3ff; }
+.c-dark .eyebrow-tag { background: rgba(124,58,237,0.12); color: #a78bfa; border: 1px solid rgba(124,58,237,0.2); }
+.c-light .eyebrow-tag { background: rgba(109,40,217,0.06); color: #6d28d9; border: 1px solid rgba(109,40,217,0.15); }
+.c-dark .page-title { color: #fff; font-weight: 700; letter-spacing: -0.03em; }
+.c-light .page-title { color: #1e1b4b; font-weight: 700; letter-spacing: -0.03em; }
+.c-dark .page-sub { color: rgba(167,139,250,0.6); }
+.c-light .page-sub { color: #7c6aad; }
+
+.c-dark .card-shell { background: rgba(124,58,237,0.05); border: 1px solid rgba(124,58,237,0.15); box-shadow: 0 0 30px rgba(124,58,237,0.06); }
+.c-light .card-shell { background: #fff; border: 1px solid rgba(109,40,217,0.1); box-shadow: 0 4px 20px rgba(109,40,217,0.06); }
+.c-dark .card-inner { background: rgba(255,255,255,0.02); }
+.c-light .card-inner { background: #fafafe; }
+.c-dark .card-title { color: rgba(255,255,255,0.9); }
+.c-light .card-title { color: #1e1b4b; }
+.c-dark .card-sub { color: rgba(167,139,250,0.5); }
+.c-light .card-sub { color: #7c6aad; }
+.c-dark .btn-primary { background: linear-gradient(135deg,#7c3aed,#4f46e5); color: #fff; box-shadow: 0 4px 20px rgba(124,58,237,0.35); }
+.c-light .btn-primary { background: linear-gradient(135deg,#7c3aed,#4f46e5); color: #fff; box-shadow: 0 4px 20px rgba(124,58,237,0.2); }
+.c-dark .player-bar { background: rgba(10,8,28,0.95); border: 1px solid rgba(124,58,237,0.15); box-shadow: 0 -4px 40px rgba(124,58,237,0.08); }
+.c-light .player-bar { background: rgba(255,255,255,0.95); border-top: 1px solid rgba(109,40,217,0.1); }
+.c-dark .player-title { color: #fff; }
+.c-light .player-title { color: #1e1b4b; }
+.c-dark .player-sub { color: rgba(167,139,250,0.5); }
+.c-light .player-sub { color: #7c6aad; }
+.c-dark .progress-track { background: rgba(124,58,237,0.15); }
+.c-light .progress-track { background: rgba(109,40,217,0.1); }
+.c-dark .progress-fill { background: linear-gradient(90deg,#7c3aed,#06b6d4); }
+.c-light .progress-fill { background: linear-gradient(90deg,#7c3aed,#06b6d4); }
+.c-dark .play-btn { background: linear-gradient(135deg,#7c3aed,#4f46e5); color: #fff; }
+.c-light .play-btn { background: linear-gradient(135deg,#7c3aed,#4f46e5); color: #fff; }
+
+/* ═══════════════════════════════════════════
+   STYLE D · 暖褐编辑 (Editorial Warm)
+   ═══════════════════════════════════════════ */
+.d-dark { background: #120d09; font-family: 'Noto Serif SC', 'Plus Jakarta Sans', sans-serif; }
+.d-light { background: #fdf6ed; font-family: 'Noto Serif SC', 'Plus Jakarta Sans', sans-serif; }
+.d-dark .preview-label { background: rgba(52,211,153,0.1); color: #34d399; border: 1px solid rgba(52,211,153,0.2); }
+.d-light .preview-label { background: rgba(146,64,14,0.08); color: #92400e; border: 1px solid rgba(146,64,14,0.15); }
+
+.d-dark .sidebar { background: rgba(20,14,9,0.95); border-right: 1px solid rgba(212,168,75,0.06); }
+.d-light .sidebar { background: #fffaf2; border-right: 1px solid rgba(180,130,80,0.15); }
+.d-dark .sidebar-logo { background: linear-gradient(135deg,#d4a84b,#a0742a); color: #fff; }
+.d-light .sidebar-logo { background: #8b5e3c; color: #fff; }
+.d-dark .sidebar-title { color: rgba(245,235,220,0.9); font-family: 'Playfair Display', 'Noto Serif SC', serif; }
+.d-light .sidebar-title { color: #3d1f0a; font-family: 'Playfair Display', 'Noto Serif SC', serif; }
+.d-dark .nav-item { color: rgba(210,180,140,0.4); }
+.d-light .nav-item { color: #9a7248; }
+.d-dark .nav-item.active { background: rgba(212,168,75,0.08); color: #d4a84b; border-left: 2px solid #d4a84b; }
+.d-light .nav-item.active { background: rgba(139,94,60,0.08); color: #8b5e3c; border-left: 2px solid #8b5e3c; }
+
+.d-dark .page-bg { background: #120d09; }
+.d-light .page-bg { background: #fdf6ed; }
+.d-dark .eyebrow-tag { background: rgba(212,168,75,0.08); color: #d4a84b; border: 1px solid rgba(212,168,75,0.15); }
+.d-light .eyebrow-tag { background: rgba(139,94,60,0.06); color: #8b5e3c; border: 1px solid rgba(139,94,60,0.15); }
+.d-dark .page-title { color: #f5e8d0; font-family: 'Playfair Display', 'Noto Serif SC', serif; font-style: italic; letter-spacing: -0.02em; }
+.d-light .page-title { color: #3d1f0a; font-family: 'Playfair Display', 'Noto Serif SC', serif; font-style: italic; letter-spacing: -0.02em; }
+.d-dark .page-sub { color: rgba(210,180,140,0.45); }
+.d-light .page-sub { color: #a0825a; }
+
+.d-dark .card-shell { background: rgba(212,168,75,0.03); border: 1px solid rgba(212,168,75,0.08); }
+.d-light .card-shell { background: rgba(139,94,60,0.04); border: 1px solid rgba(139,94,60,0.12); box-shadow: 0 2px 16px rgba(100,60,20,0.06); }
+.d-dark .card-inner { background: rgba(255,255,255,0.02); }
+.d-light .card-inner { background: #fff9f2; }
+.d-dark .card-title { color: #f5e8d0; font-family: 'Playfair Display', serif; }
+.d-light .card-title { color: #3d1f0a; font-family: 'Playfair Display', serif; }
+.d-dark .card-sub { color: rgba(210,180,140,0.4); }
+.d-light .card-sub { color: #a0825a; }
+.d-dark .btn-primary { background: linear-gradient(135deg,#d4a84b,#a0742a); color: #120d09; box-shadow: 0 4px 20px rgba(212,168,75,0.2); }
+.d-light .btn-primary { background: #8b5e3c; color: #fff; box-shadow: 0 4px 20px rgba(139,94,60,0.2); }
+.d-dark .player-bar { background: rgba(15,9,5,0.95); border: 1px solid rgba(212,168,75,0.08); }
+.d-light .player-bar { background: #fffaf2; border-top: 1px solid rgba(180,130,80,0.12); }
+.d-dark .player-title { color: #f5e8d0; font-family: 'Playfair Display', serif; }
+.d-light .player-title { color: #3d1f0a; font-family: 'Playfair Display', serif; }
+.d-dark .player-sub { color: rgba(210,180,140,0.4); }
+.d-light .player-sub { color: #a0825a; }
+.d-dark .progress-track { background: rgba(212,168,75,0.1); }
+.d-light .progress-track { background: rgba(139,94,60,0.1); }
+.d-dark .progress-fill { background: linear-gradient(90deg,#d4a84b,#f0c878); }
+.d-light .progress-fill { background: #8b5e3c; }
+.d-dark .play-btn { background: linear-gradient(135deg,#d4a84b,#a0742a); color: #120d09; }
+.d-light .play-btn { background: #8b5e3c; color: #fff; }
+
+/* ═══════════════════════════════════════════
+   STYLE E · 霓虹深夜 (Cyberpunk / Music-first)
+   ═══════════════════════════════════════════ */
+.e-dark { background: #050510; font-family: 'DM Mono', monospace; }
+.e-light { background: #f0faf5; font-family: 'DM Mono', monospace; }
+.e-dark .preview-label { background: rgba(244,114,182,0.1); color: #f472b6; border: 1px solid rgba(244,114,182,0.2); }
+.e-light .preview-label { background: rgba(5,150,105,0.08); color: #059669; border: 1px solid rgba(5,150,105,0.15); }
+
+.e-dark .sidebar { background: rgba(5,5,20,0.98); border-right: 1px solid rgba(0,255,136,0.08); }
+.e-light .sidebar { background: #fff; border-right: 1px solid rgba(5,150,105,0.1); }
+.e-dark .sidebar-logo { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid rgba(0,255,136,0.2); }
+.e-light .sidebar-logo { background: linear-gradient(135deg,#059669,#0d9488); color: #fff; }
+.e-dark .sidebar-title { color: #00ff88; letter-spacing: 0.05em; }
+.e-light .sidebar-title { color: #065f46; font-weight: 700; letter-spacing: 0.03em; }
+.e-dark .nav-item { color: rgba(0,255,136,0.3); }
+.e-light .nav-item { color: #6b7280; }
+.e-dark .nav-item.active { background: rgba(0,255,136,0.06); color: #00ff88; border-left: 2px solid #00ff88; }
+.e-light .nav-item.active { background: rgba(5,150,105,0.06); color: #059669; border-left: 2px solid #059669; }
+
+.e-dark .page-bg { background: #050510; }
+.e-light .page-bg { background: #f0faf5; }
+.e-dark .eyebrow-tag { background: rgba(0,255,136,0.06); color: #00ff88; border: 1px solid rgba(0,255,136,0.15); letter-spacing: 0.15em; }
+.e-light .eyebrow-tag { background: rgba(5,150,105,0.06); color: #059669; border: 1px solid rgba(5,150,105,0.15); }
+.e-dark .page-title { color: #fff; letter-spacing: 0.02em; text-shadow: 0 0 30px rgba(0,255,136,0.15); }
+.e-light .page-title { color: #065f46; letter-spacing: 0; font-weight: 800; }
+.e-dark .page-sub { color: rgba(0,255,136,0.4); }
+.e-light .page-sub { color: #6b9e8a; }
+
+.e-dark .card-shell { background: rgba(0,255,136,0.02); border: 1px solid rgba(0,255,136,0.08); box-shadow: 0 0 20px rgba(0,255,136,0.03); }
+.e-light .card-shell { background: #fff; border: 1px solid rgba(5,150,105,0.1); }
+.e-dark .card-inner { background: rgba(0,0,0,0.3); }
+.e-light .card-inner { background: #f0faf5; }
+.e-dark .card-title { color: #fff; }
+.e-light .card-title { color: #065f46; }
+.e-dark .card-sub { color: rgba(0,255,136,0.35); }
+.e-light .card-sub { color: #6b9e8a; }
+.e-dark .btn-primary { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid rgba(0,255,136,0.25); box-shadow: 0 0 20px rgba(0,255,136,0.1); }
+.e-light .btn-primary { background: linear-gradient(135deg,#059669,#0d9488); color: #fff; }
+.e-dark .player-bar { background: rgba(3,3,15,0.98); border: 1px solid rgba(0,255,136,0.1); box-shadow: 0 -4px 40px rgba(0,255,136,0.05); }
+.e-light .player-bar { background: rgba(255,255,255,0.95); border-top: 1px solid rgba(5,150,105,0.1); }
+.e-dark .player-title { color: #fff; }
+.e-light .player-title { color: #065f46; }
+.e-dark .player-sub { color: rgba(0,255,136,0.4); }
+.e-light .player-sub { color: #6b9e8a; }
+.e-dark .progress-track { background: rgba(0,255,136,0.08); }
+.e-light .progress-track { background: rgba(5,150,105,0.1); }
+.e-dark .progress-fill { background: linear-gradient(90deg,#00ff88,#00d4ff); box-shadow: 0 0 8px rgba(0,255,136,0.4); }
+.e-light .progress-fill { background: linear-gradient(90deg,#059669,#0d9488); }
+.e-dark .play-btn { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid rgba(0,255,136,0.25); }
+.e-light .play-btn { background: linear-gradient(135deg,#059669,#0d9488); color: #fff; }
+
+/* ── SHARED COMPONENT STYLES ── */
+.preview-inner {
+  display: flex; height: 100%; min-height: 600px;
+}
+.sidebar {
+  width: 200px; flex-shrink: 0; padding: 20px 12px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px; padding: 0 4px;
+}
+.sidebar-logo {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px; flex-shrink: 0;
+}
+.sidebar-title { font-size: 13px; font-weight: 700; }
+.sidebar-group { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 8px; margin-top: 12px; margin-bottom: 4px; opacity: 0.4; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 8px; font-size: 12px;
+  font-weight: 500; cursor: pointer; border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+.nav-item .icon { font-size: 14px; }
+.main-content {
+  flex: 1; overflow: hidden; display: flex; flex-direction: column;
+}
+.page-bg {
+  flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 20px;
+}
+.page-header { }
+.eyebrow-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 9999px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; line-height: 1.2; }
+.page-sub { font-size: 12px; }
+
+/* cards grid */
+.cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.card-shell { border-radius: 14px; padding: 6px; transition: transform 0.3s; }
+.card-shell:hover { transform: scale(1.03); }
+.card-inner { border-radius: 10px; overflow: hidden; }
+.card-img { width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.card-info { padding: 8px 10px; }
+.card-title { font-size: 11px; font-weight: 600; margin-bottom: 2px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-sub { font-size: 10px; }
+
+/* search bar */
+.search-row { display: flex; gap: 8px; align-items: center; }
+.search-input {
+  flex: 1; padding: 9px 14px; border-radius: 10px; font-size: 12px;
+  outline: none; font-family: inherit;
+  background: transparent; transition: all 0.2s;
+}
+.btn-primary {
+  padding: 9px 16px; border-radius: 10px; font-size: 12px;
+  font-weight: 700; border: none; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.3s cubic-bezier(0.32,0.72,0,1);
+  font-family: inherit;
+}
+.btn-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,0.12); display: flex; align-items: center;
+  justify-content: center; font-size: 10px;
+  transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+}
+.btn-primary:hover .btn-icon { transform: translate(2px,-1px) scale(1.1); }
+
+/* player */
+.player-bar {
+  border-radius: 14px; padding: 12px 16px;
+  margin: 0 16px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.player-cover {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.player-info { flex: 1; min-width: 0; }
+.player-title { font-size: 12px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-sub { font-size: 10px; }
+.player-progress { flex: 2; display: flex; flex-direction: column; gap: 4px; }
+.progress-track { height: 3px; border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; width: 40%; border-radius: 2px; }
+.progress-times { display: flex; justify-content: space-between; font-size: 9px; opacity: 0.4; font-variant-numeric: tabular-nums; }
+.player-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.ctrl-btn { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; background: transparent; font-size: 14px; opacity: 0.6; }
+.play-btn {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: none; cursor: pointer; font-size: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+
+/* search input theming */
+.a-dark .search-input { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.a-light .search-input { background: rgba(255,255,255,0.8); border: 1px solid rgba(180,150,100,0.15); color: #2c1f14; }
+.b-dark .search-input { background: #141414; border: 1px solid #222; color: #fff; }
+.b-light .search-input { background: #fff; border: 1px solid #e5e7eb; color: #111; }
+.c-dark .search-input { background: rgba(124,58,237,0.05); border: 1px solid rgba(124,58,237,0.15); color: #fff; }
+.c-light .search-input { background: #fff; border: 1px solid rgba(109,40,217,0.15); color: #1e1b4b; }
+.d-dark .search-input { background: rgba(255,255,255,0.03); border: 1px solid rgba(212,168,75,0.08); color: rgba(245,235,220,0.8); }
+.d-light .search-input { background: #fff9f2; border: 1px solid rgba(139,94,60,0.12); color: #3d1f0a; }
+.e-dark .search-input { background: rgba(0,255,136,0.03); border: 1px solid rgba(0,255,136,0.08); color: #00ff88; font-family: 'DM Mono', monospace; }
+.e-light .search-input { background: #fff; border: 1px solid rgba(5,150,105,0.12); color: #065f46; }
+
+/* ctrl-btn theming */
+.a-dark .ctrl-btn { color: rgba(255,255,255,0.5); }
+.a-light .ctrl-btn { color: #7a6248; }
+.b-dark .ctrl-btn { color: rgba(255,255,255,0.4); }
+.b-light .ctrl-btn { color: #9ca3af; }
+.c-dark .ctrl-btn { color: rgba(167,139,250,0.5); }
+.c-light .ctrl-btn { color: #7c6aad; }
+.d-dark .ctrl-btn { color: rgba(210,180,140,0.5); }
+.d-light .ctrl-btn { color: #a0825a; }
+.e-dark .ctrl-btn { color: rgba(0,255,136,0.4); }
+.e-light .ctrl-btn { color: #6b9e8a; }
+
+/* divider */
+.divider { height: 1px; margin: 4px 0; }
+.a-dark .divider { background: rgba(212,168,75,0.06); }
+.a-light .divider { background: rgba(180,150,100,0.1); }
+.b-dark .divider { background: #1f1f1f; }
+.b-light .divider { background: #f3f4f6; }
+.c-dark .divider { background: rgba(124,58,237,0.08); }
+.c-light .divider { background: rgba(109,40,217,0.06); }
+.d-dark .divider { background: rgba(212,168,75,0.05); }
+.d-light .divider { background: rgba(139,94,60,0.08); }
+.e-dark .divider { background: rgba(0,255,136,0.05); }
+.e-light .divider { background: rgba(5,150,105,0.06); }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center; padding: 60px 2rem 40px;
+  color: rgba(255,255,255,0.2); font-size: 12px;
+}
+footer a { color: rgba(255,255,255,0.35); text-decoration: none; }
+footer a:hover { color: rgba(255,255,255,0.6); }
+footer .footer-grid { display: flex; justify-content: center; gap: 40px; margin-bottom: 32px; flex-wrap: wrap; }
+footer .footer-col h4 { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 12px; letter-spacing: 0.06em; }
+footer .footer-col a { display: block; margin-bottom: 6px; font-size: 12px; }
+
+/* scrollspy active */
+.section-block { scroll-margin-top: 72px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top-nav">
+  <h1>BoxWang 风格预览 · 5 套方案</h1>
+  <div class="nav-pills">
+    <div class="nav-pill" data-style="A" onclick="scrollTo('style-a')">A · 黑金精工</div>
+    <div class="nav-pill" data-style="B" onclick="scrollTo('style-b')">B · 极简精密</div>
+    <div class="nav-pill" data-style="C" onclick="scrollTo('style-c')">C · 暗夜紫霾</div>
+    <div class="nav-pill" data-style="D" onclick="scrollTo('style-d')">D · 暖褐编辑</div>
+    <div class="nav-pill" data-style="E" onclick="scrollTo('style-e')">E · 霓虹深夜</div>
+  </div>
+</nav>
+
+<!-- ══ STYLE A ══ -->
+<div id="style-a" class="section-block">
+  <div class="section-header">
+    <div class="style-badge" style="background:rgba(232,168,73,0.1);color:#e8a849;border:1px solid rgba(232,168,73,0.2);">方案 A</div>
+    <h2 style="color:#e8a849;">黑金精工 × 奶白奢华</h2>
+    <p>当前方向的深化升级 · Playfair Display 标题 · 暖调黑金系统</p>
+    <div class="ref-links">
+      <a href="https://linear.app" target="_blank" class="ref-link">↗ Linear</a>
+      <a href="https://www.montblanc.com" target="_blank" class="ref-link">↗ Montblanc</a>
+      <a href="https://stripe.com" target="_blank" class="ref-link">↗ Stripe</a>
+    </div>
+  </div>
+  <div class="preview-grid">
+    <!-- A Dark -->
+    <div class="preview-panel a-dark">
+      <div class="preview-label a-dark">深色模式</div>
+      <div class="preview-inner">
+        <div class="sidebar a-dark">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo a-dark">B</div>
+            <span class="sidebar-title a-dark">BoxWang</span>
+          </div>
+          <div class="nav-item a-dark"><span class="icon">📄</span>文档工具</div>
+          <div class="nav-item a-dark"><span class="icon">🖼</span>图片工具</div>
+          <div class="divider a-dark"></div>
+          <div class="nav-item a-dark active"><span class="icon">🎵</span>免费听歌</div>
+          <div class="nav-item a-dark" style="padding-left:28px;font-size:11px;opacity:0.6"><span class="icon">🎧</span>歌单</div>
+          <div class="nav-item a-dark" style="padding-left:28px;font-size:11px;opacity:0.4"><span class="icon">🔍</span>搜索</div>
+          <div class="divider a-dark"></div>
+          <div class="nav-item a-dark"><span class="icon">📚</span>免费小说</div>
+          <div class="nav-item a-dark"><span class="icon">⚙️</span>设置</div>
+        </div>
+        <div class="main-content">
+          <div class="page-bg a-dark">
+            <div class="page-header">
+              <div class="eyebrow-tag a-dark">🎵 多源聚合</div>
+              <div class="page-title a-dark">全网歌曲免费听</div>
+              <div class="page-sub a-dark">畅听无阻，支持歌词同步</div>
+            </div>
+            <div class="search-row">
+              <input class="search-input a-dark" placeholder="输入歌曲名、歌手..." readonly>
+              <button class="btn-primary a-dark">搜索<span class="btn-icon">→</span></button>
+            </div>
+            <div class="cards-grid">
+              <div class="card-shell a-dark"><div class="card-inner a-dark"><div class="card-img">🎼</div><div class="card-info"><div class="card-title a-dark">华语金曲精选</div><div class="card-sub a-dark">2.3亿次</div></div></div></div>
+              <div class="card-shell a-dark"><div class="card-inner a-dark"><div class="card-img">🌙</div><div class="card-info"><div class="card-title a-dark">深夜必听</div><div class="card-sub a-dark">8814万次</div></div></div></div>
+              <div class="card-shell a-dark"><div class="card-inner a-dark"><div class="card-img">🎸</div><div class="card-info"><div class="card-title a-dark">摇滚经典</div><div class="card-sub a-dark">1.2亿次</div></div></div></div>
+              <div class="card-shell a-dark"><div class="card-inner a-dark"><div class="card-img">☕</div><div class="card-info"><div class="card-title a-dark">咖啡馆氛围</div><div class="card-sub a-dark">5640万次</div></div></div></div>
+            </div>
+          </div>
+          <div class="player-bar a-dark">
+            <div class="player-cover">🎵</div>
+            <div class="player-info"><div class="player-title a-dark">辛之谣</div><div class="player-sub a-dark">薛之谦</div></div>
+            <div class="player-progress">
+              <div class="progress-track a-dark"><div class="progress-fill a-dark"></div></div>
+              <div class="progress-times a-dark"><span>1:24</span><span>4:37</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn a-dark">⏮</button>
+              <button class="play-btn a-dark">⏸</button>
+              <button class="ctrl-btn a-dark">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- A Light -->
+    <div class="preview-panel a-light">
+      <div class="preview-label a-light">浅色模式</div>
+      <div class="preview-inner">
+        <div class="sidebar a-light">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo a-light">B</div>
+            <span class="sidebar-title a-light">BoxWang</span>
+          </div>
+          <div class="nav-item a-light"><span class="icon">📄</span>文档工具</div>
+          <div class="nav-item a-light"><span class="icon">🖼</span>图片工具</div>
+          <div class="divider a-light"></div>
+          <div class="nav-item a-light active"><span class="icon">🎵</span>免费听歌</div>
+          <div class="nav-item a-light" style="padding-left:28px;font-size:11px;opacity:0.6"><span class="icon">🎧</span>歌单</div>
+          <div class="nav-item a-light" style="padding-left:28px;font-size:11px;opacity:0.4"><span class="icon">🔍</span>搜索</div>
+          <div class="divider a-light"></div>
+          <div class="nav-item a-light"><span class="icon">📚</span>免费小说</div>
+          <div class="nav-item a-light"><span class="icon">⚙️</span>设置</div>
+        </div>
+        <div class="main-content">
+          <div class="page-bg a-light">
+            <div class="page-header">
+              <div class="eyebrow-tag a-light">🎵 多源聚合</div>
+              <div class="page-title a-light">全网歌曲免费听</div>
+              <div class="page-sub a-light">畅听无阻，支持歌词同步</div>
+            </div>
+            <div class="search-row">
+              <input class="search-input a-light" placeholder="输入歌曲名、歌手..." readonly>
+              <button class="btn-primary a-light">搜索<span class="btn-icon">→</span></button>
+            </div>
+            <div class="cards-grid">
+              <div class="card-shell a-light"><div class="card-inner a-light"><div class="card-img">🎼</div><div class="card-info"><div class="card-title a-light">华语金曲精选</div><div class="card-sub a-light">2.3亿次</div></div></div></div>
+              <div class="card-shell a-light"><div class="card-inner a-light"><div class="card-img">🌙</div><div class="card-info"><div class="card-title a-light">深夜必听</div><div class="card-sub a-light">8814万次</div></div></div></div>
+              <div class="card-shell a-light"><div class="card-inner a-light"><div class="card-img">🎸</div><div class="card-info"><div class="card-title a-light">摇滚经典</div><div class="card-sub a-light">1.2亿次</div></div></div></div>
+              <div class="card-shell a-light"><div class="card-inner a-light"><div class="card-img">☕</div><div class="card-info"><div class="card-title a-light">咖啡馆氛围</div><div class="card-sub a-light">5640万次</div></div></div></div>
+            </div>
+          </div>
+          <div class="player-bar a-light">
+            <div class="player-cover">🎵</div>
+            <div class="player-info"><div class="player-title a-light">辛之谣</div><div class="player-sub a-light">薛之谦</div></div>
+            <div class="player-progress">
+              <div class="progress-track a-light"><div class="progress-fill a-light"></div></div>
+              <div class="progress-times a-light"><span>1:24</span><span>4:37</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn a-light">⏮</button>
+              <button class="play-btn a-light">⏸</button>
+              <button class="ctrl-btn a-light">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STYLE B ══ -->
+<div id="style-b" class="section-block">
+  <div class="section-header">
+    <div class="style-badge" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);">方案 B</div>
+    <h2 style="color:#60a5fa;">极简精密</h2>
+    <p>无边框无阴影 · 靠字重和间距建立层次 · Linear / Vercel 风格</p>
+    <div class="ref-links">
+      <a href="https://linear.app" target="_blank" class="ref-link">↗ Linear</a>
+      <a href="https://vercel.com" target="_blank" class="ref-link">↗ Vercel</a>
+      <a href="https://www.raycast.com" target="_blank" class="ref-link">↗ Raycast</a>
+    </div>
+  </div>
+  <div class="preview-grid">
+    <div class="preview-panel b-dark">
+      <div class="preview-label b-dark">深色模式</div>
+      <div class="preview-inner">
+        <div class="sidebar b-dark">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo b-dark">B</div>
+            <span class="sidebar-title b-dark">BoxWang</span>
+          </div>
+          <div class="nav-item b-dark"><span class="icon">📄</span>文档工具</div>
+          <div class="nav-item b-dark"><span class="icon">🖼</span>图片工具</div>
+          <div class="divider b-dark"></div>
+          <div class="nav-item b-dark active"><span class="icon">🎵</span>免费听歌</div>
+          <div class="nav-item b-dark" style="padding-left:28px;font-size:11px;opacity:0.5"><span class="icon">🎧</span>歌单</div>
+          <div class="nav-item b-dark" style="padding-left:28px;font-size:11px;opacity:0.3"><span class="icon">🔍</span>搜索</div>
+          <div class="divider b-dark"></div>
+          <div class="nav-item b-dark"><span class="icon">📚</span>免费小说</div>
+          <div class="nav-item b-dark"><span class="icon">⚙️</span>设置</div>
+        </div>
+        <div class="main-content">
+          <div class="page-bg b-dark">
+            <div class="page-header">
+              <div class="eyebrow-tag b-dark">MUSIC</div>
+              <div class="page-title b-dark">全网歌曲免费听</div>
+              <div class="page-sub b-dark">畅听无阻，支持歌词同步</div>
+            </div>
+            <div class="search-row">
+              <input class="search-input b-dark" placeholder="输入歌曲名、歌手..." readonly>
+              <button class="btn-primary b-dark">搜索<span class="btn-icon" style="background:rgba(255,255,255,0.1)">→</span></button>
+            </div>
+            <div class="cards-grid">
+              <div class="card-shell b-dark"><div class="card-inner b-dark"><div class="card-img">🎼</div><div class="card-info"><div class="card-title b-dark">华语金曲精选</div><div class="card-sub b-dark">2.3亿次</div></div></div></div>
+              <div class="card-shell b-dark"><div class="card-inner b-dark"><div class="card-img">🌙</div><div class="card-info"><div class="card-title b-dark">深夜必听</div><div class="card-sub b-dark">8814万次</div></div></div></div>
+              <div class="card-shell b-dark"><div class="card-inner b-dark"><div class="card-img">🎸</div><div class="card-info"><div class="card-title b-dark">摇滚经典</div><div class="card-sub b-dark">1.2亿次</div></div></div></div>
+              <div class="card-shell b-dark"><div class="card-inner b-dark"><div class="card-img">☕</div><div class="card-info"><div class="card-title b-dark">咖啡馆</div><div class="card-sub b-dark">5640万次</div></div></div></div>
+            </div>
+          </div>
+          <div class="player-bar b-dark">
+            <div class="player-cover">🎵</div>
+            <div class="player-info"><div class="player-title b-dark">辛之谣</div><div class="player-sub b-dark">薛之谦</div></div>
+            <div class="player-progress">
+              <div class="progress-track b-dark"><div class="progress-fill b-dark"></div></div>
+              <div class="progress-times b-dark"><span>1:24</span><span>4:37</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn b-dark">⏮</button>
+              <button class="play-btn b-dark">⏸</button>
+              <button class="ctrl-btn b-dark">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="preview-panel b-light">
+      <div class="preview-label b-light">浅色模式</div>
+      <div class="preview-inner">
+        <div class="sidebar b-light">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo b-light">B</div>
+            <span class="sidebar-title b-light">BoxWang</span>
+          </div>
+          <div class="nav-item b-light"><span class="icon">📄</span>文档工具</div>
+          <div class="nav-item b-light"><span class="icon">🖼</span>图片工具</div>
+          <div class="divider b-light"></div>
+          <div class="nav-item b-light active"><span class="icon">🎵</span>免费听歌</div>
+          <div class="nav-item b-light" style="padding-left:28px;font-size:11px;opacity:0.5"><span class="icon">🎧</span>歌单</div>
+          <div class="nav-item b-light" style="padding-left:28px;font-size:11px;opacity:0.3"><span class="icon">🔍</span>搜索</div>
+          <div class="divider b-light"></div>
+          <div class="nav-item b-light"><span class="icon">📚</span>免费小说</div>
+          <div class="nav-item b-light"><span class="icon">⚙️</span>设置</div>
+        </div>
+        <div class="main-content">
+          <div class="page-bg b-light">
+            <div class="page-header">
+              <div class="eyebrow-tag b-light">MUSIC</div>
+              <div class="page-title b-light">全网歌曲免费听</div>
+              <div class="page-sub b-light">畅听无阻，支持歌词同步</div>
+            </div>
+            <div class="search-row">
+              <input class="search-input b-light" placeholder="输入歌曲名、歌手..." readonly>
+              <button class="btn-primary b-light">搜索<span class="btn-icon" style="background:rgba(255,255,255,0.15)">→</span></button>
+            </div>
+            <div class="cards-grid">
+              <div class="card-shell b-light"><div class="card-inner b-light"><div class="card-img" style="background:#f9fafb">🎼</div><div class="card-info"><div class="card-title b-light">华语金曲精选</div><div class="card-sub b-light">2.3亿次</div></div></div></div>
+              <div class="card-shell b-light"><div class="card-inner b-light"><div class="card-img" style="background:#f9fafb">🌙</div><div class="card-info"><div class="card-title b-light">深夜必听</div><div class="card-sub b-light">8814万次</div></div></div></div>
+              <div class="card-shell b-light"><div class="card-inner b-light"><div class="card-img" style="background:#f9fafb">🎸</div><div class="card-info"><div class="card-title b-light">摇滚经典</div><div class="card-sub b-light">1.2亿次</div></div></div></div>
+              <div class="card-shell b-light"><div class="card-inner b-light"><div class="card-img" style="background:#f9fafb">☕</div><div class="card-info"><div class="card-title b-light">咖啡馆</div><div class="card-sub b-light">5640万次</div></div></div></div>
+            </div>
+          </div>
+          <div class="player-bar b-light">
+            <div class="player-cover" style="background:#f3f4f6">🎵</div>
+            <div class="player-info"><div class="player-title b-light">辛之谣</div><div class="player-sub b-light">薛之谦</div></div>
+            <div class="player-progress">
+              <div class="progress-track b-light"><div class="progress-fill b-light"></div></div>
+              <div class="progress-times b-light"><span>1:24</span><span>4:37</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn b-light">⏮</button>
+              <button class="play-btn b-light">⏸</button>
+              <button class="ctrl-btn b-light">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STYLE C ══ -->
+<div id="style-c" class="section-block">
+  <div class="section-header">
+    <div class="style-badge" style="background:rgba(139,92,246,0.12);color:#a78bfa;border:1px solid rgba(139,92,246,0.25);">方案 C</div>
+    <h2 style="color:#a78bfa;">暗夜紫霾</h2>
+    <p>深紫蓝宇宙感 · 渐变光晕 · AI 工具产品首选 · Framer / Perplexity 风</p>
+    <div class="ref-links">
+      <a href="https://www.framer.com" target="_blank" class="ref-link">↗ Framer</a>
+      <a href="https://www.perplexity.ai" target="_blank" class="ref-link">↗ Perplexity</a>
+      <a href="https://arc.net" target="_blank" class="ref-link">↗ Arc Browser</a>
+    </div>
+  </div>
+  <div class="preview-grid">
+    <div class="preview-panel c-dark">
+      <div class="preview-label c-dark">深色模式</div>
+      <div class="preview-inner">
+        <div class="sidebar c-dark">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo c-dark">B</div>
+            <span class="sidebar-title c-dark">BoxWang</span>
+          </div>
+          <div class="nav-item c-dark"><span class="icon">📄</span>文档工具</div>
+          <div class="nav-item c-dark"><span class="icon">🖼</span>图片工具</div>
+          <div class="divider c-dark"></div>
+          <div class="nav-item c-dark active"><span class="icon">🎵</span>免费听歌</div>
+          <div class="nav-item c-dark" style="padding-left:28px;font-size:11px;opacity:0.5"><span class="icon">🎧</span>歌单</div>
+          <div class="nav-item c-dark" style="padding-left:28px;font-size:11px;opacity:0.3"><span class="icon">🔍</span>搜索</div>
+          <div class="divider c-dark"></div>
+          <div class="nav-item c-dark"><span class="icon">📚</span>免费小说</div>
+          <div class="nav-item c-dark"><span class="icon">⚙️</span>设置</div>
+        </div>
+        <div class="main-content">
+          <div class="page-bg c-dark" style="background:linear-gradient(135deg,#07071a 0%,#0d0720 100%)">
+            <div class="page-header">
+              <div class="eyebrow-tag c-dark">✦ 多源聚合</div>
+              <div class="page-title c-dark">全网歌曲免费听</div>
+              <div class="page-sub c-dark">畅听无阻，支持歌词同步</div>
+            </div>
+            <div class="search-row">
+              <input class="search-input c-dark" placeholder="输入歌曲名、歌手..." readonly>
+              <button class="btn-primary c-dark">搜索<span class="btn-icon" style="background:rgba(255,255,255,0.1)">→</span></button>
+            </div>
+            <div class="cards-grid">
+              <div class="card-shell c-dark"><div class="card-inner c-dark"><div class="card-img">🎼</div><div class="card-info"><div class="card-title c-dark">华语金曲精选</div><div class="card-sub c-dark">2.3亿次</div></div></div></div>
+              <div class="card-shell c-dark"><div class="card-inner c-dark"><div class="card-img">🌙</div><div class="card-info"><div class="card-title c-dark">深夜必听</div><div class="card-sub c-dark">8814万次</div></div></div></div>
+              <div class="card-shell c-dark"><div class="card-inner c-dark"><div class="card-img">🎸</div><div class="card-info"><div class="card-title c-dark">摇滚经典</div><div class="card-sub c-dark">1.2亿次</div></div></div></div>
+              <div class="card-shell c-dark"><div class="card-inner c-dark"><div class="card-img">☕</div><div class="card-info"><div class="card-title c-dark">咖啡馆</div><div class="card-sub c-dark">5640万次</div></div></div></div>
+            </div>
+          </div>
+          <div class="player-bar c-dark">
+            <div class="player-cover">🎵</div>
+            <div class="player-info"><div class="player-title c-dark">辛之谣</div><div class="player-sub c-dark">薛之谦</div></div>
+            <div class="player-progress">
+              <div class="progress-track c-dark"><div class="progress-fill c-dark"></div></div>
+              <div class="progress-times c-dark"><span>1:24</span><span>4:37</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn c-dark">⏮</button>
+              <button class="play-btn c-dark">⏸</button>
+              <button class="ctrl-btn c-dark">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="preview-panel c-light">
+      <div class="preview-label c-light">浅色模式</div>
+      <div class="preview-inner">
+        <div class="sidebar c-light">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo c-light">B</div>
+            <span class="sidebar-title c-light">BoxWang</span>
+          </div>
+          <div class="nav-item c-light"><span class="icon">📄</span>文档工具</div>
+          <div class="nav-item c-light"><span class="icon">🖼</span>图片工具</div>
+          <div class="divider c-light"></div>
+          <div class="nav-item c-light active"><span class="icon">🎵</span>免费听歌</div>
+          <div class="nav-item c-light" style="padding-left:28px;font-size:11px;opacity:0.5"><span class="icon">🎧</span>歌单</div>
+          <div class="nav-item c-light" style="padding-left:28px;font-size:11px;opacity:0.3"><span class="icon">🔍</span>搜索</div>
+          <div class="divider c-light"></div>
+          <div class="nav-item c-light"><span class="icon">📚</span>免费小说</div>
+          <div class="nav-item c-light"><span class="icon">⚙️</span>设置</div>
+        </div>
+        <div class="main-content">
+          <div class="page-bg c-light">
+            <div class="page-header">
+              <div class="eyebrow-tag c-light">✦ 多源聚合</div>
+              <div class="page-title c-light">全网歌曲免费听</div>
+              <div class="page-sub c-light">畅听无阻，支持歌词同步</div>
+            </div>
+            <div class="search-row">
+              <input class="search-input c-light" placeholder="输入歌曲名、歌手..." readonly>
+              <button class="btn-primary c-light">搜索<span class="btn-icon" style="background:rgba(255,255,255,0.15)">→</span></button>
+            </div>
+            <div class="cards-grid">
+              <div class="card-shell c-light"><div class="card-inner c-light"><div class="card-img" style="background:#f5f3ff">🎼</div><div class="card-info"><div class="card-title c-light">华语金曲精选</div><div class="card-sub c-light">2.3亿次</div></div></div></div>
+              <div class="card-shell c-light"><div class="card-inner c-light"><div class="card-img" style="background:#f5f3ff">🌙</div><div class="card-info"><div class="card-title c-light">深夜必听</div><div class="card-sub c-light">8814万次</div></div></div></div>
+              <div class="card-shell c-light"><div class="card-inner c-light"><div class="card-img" style="background:#f5f3ff">🎸</div><div class="card-info"><div class="card-title c-light">摇滚经典</div><div class="card-sub c-light">1.2亿次</div></div></div></div>
+              <div class="card-shell c-light"><div class="card-inner c-light"><div class="card-img" style="background:#f5f3ff">☕</div><div class="card-info"><div class="card-title c-light">咖啡馆</div><div class="card-sub c-light">5640万次</div></div></div></div>
+            </div>
+          </div>
+          <div class="player-bar c-light">
+            <div class="player-cover" style="background:#ede9fe">🎵</div>
+            <div class="player-info"><div class="player-title c-light">辛之谣</div><div class="player-sub c-light">薛之谦</div></div>
+            <div class="player-progress">
+              <div class="progress-track c-light"><div class="progress-fill c-light"></div></div>
+              <div class="progress-times c-light"><span>1:24</span><span>4:37</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn c-light">⏮</button>
+              <button class="play-btn c-light">⏸</button>
+              <button class="ctrl-btn c-light">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STYLE D ══ -->
+<div id="style-d" class="section-block">
+  <div class="section-header">
+    <div class="style-badge" style="background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.2);">方案 D</div>
+    <h2 style="color:#d4a84b;">暖褐编辑</h2>
+    <p>浓缩咖啡深棕 · Playfair 斜体标题 · 印刷杂志质感 · 音乐/阅读双模块天然契合</p>
+    <div class="ref-links">
+      <a href="https://www.are.na" target="_blank" class="ref-link">↗ Are.na</a>
+      <a href="https://www.readwise.io/reader" target="_blank" class="ref-link">↗ Readwise Reader</a>
+      <a href="https://www.instapaper.com" target="_blank" class="ref-link">↗ Instapaper</a>
+    </div>
+  </div>
+  <div class="preview-grid">
+    <div class="preview-panel d-dark">
+      <div class="preview-label d-dark">深色模式</div>
+      <div class="preview-inner">
+        <div class="sidebar d-dark">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo d-dark">B</div>
+            <span class="sidebar-title d-dark">BoxWang</span>
+          </div>
+          <div class="nav-item d-dark"><span class="icon">📄</span>文档工具</div>
+          <div class="nav-item d-dark"><span class="icon">🖼</span>图片工具</div>
+          <div class="divider d-dark"></div>
+          <div class="nav-item d-dark active"><span class="icon">🎵</span>免费听歌</div>
+          <div class="nav-item d-dark" style="padding-left:28px;font-size:11px;opacity:0.5"><span class="icon">🎧</span>歌单</div>
+          <div class="nav-item d-dark" style="padding-left:28px;font-size:11px;opacity:0.3"><span class="icon">🔍</span>搜索</div>
+          <div class="divider d-dark"></div>
+          <div class="nav-item d-dark"><span class="icon">📚</span>免费小说</div>
+          <div class="nav-item d-dark"><span class="icon">⚙️</span>设置</div>
+        </div>
+        <div class="main-content">
+          <div class="page-bg d-dark">
+            <div class="page-header">
+              <div class="eyebrow-tag d-dark">🎵 多源聚合</div>
+              <div class="page-title d-dark">全网歌曲免费听</div>
+              <div class="page-sub d-dark">畅听无阻，支持歌词同步</div>
+            </div>
+            <div class="search-row">
+              <input class="search-input d-dark" placeholder="输入歌曲名、歌手..." readonly>
+              <button class="btn-primary d-dark">搜索<span class="btn-icon" style="background:rgba(0,0,0,0.15)">→</span></button>
+            </div>
+            <div class="cards-grid">
+              <div class="card-shell d-dark"><div class="card-inner d-dark"><div class="card-img">🎼</div><div class="card-info"><div class="card-title d-dark">华语金曲精选</div><div class="card-sub d-dark">2.3亿次</div></div></div></div>
+              <div class="card-shell d-dark"><div class="card-inner d-dark"><div class="card-img">🌙</div><div class="card-info"><div class="card-title d-dark">深夜必听</div><div class="card-sub d-dark">8814万次</div></div></div></div>
+              <div class="card-shell d-dark"><div class="card-inner d-dark"><div class="card-img">🎸</div><div class="card-info"><div class="card-title d-dark">摇滚经典</div><div class="card-sub d-dark">1.2亿次</div></div></div></div>
+              <div class="card-shell d-dark"><div class="card-inner d-dark"><div class="card-img">☕</div><div class="card-info"><div class="card-title d-dark">咖啡馆</div><div class="card-sub d-dark">5640万次</div></div></div></div>
+            </div>
+          </div>
+          <div class="player-bar d-dark">
+            <div class="player-cover">🎵</div>
+            <div class="player-info"><div class="player-title d-dark">辛之谣</div><div class="player-sub d-dark">薛之谦</div></div>
+            <div class="player-progress">
+              <div class="progress-track d-dark"><div class="progress-fill d-dark"></div></div>
+              <div class="progress-times d-dark"><span>1:24</span><span>4:37</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn d-dark">⏮</button>
+              <button class="play-btn d-dark">⏸</button>
+              <button class="ctrl-btn d-dark">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="preview-panel d-light">
+      <div class="preview-label d-light">浅色模式</div>
+      <div class="preview-inner">
+        <div class="sidebar d-light">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo d-light">B</div>
+            <span class="sidebar-title d-light">BoxWang</span>
+          </div>
+          <div class="nav-item d-light"><span class="icon">📄</span>文档工具</div>
+          <div class="nav-item d-light"><span class="icon">🖼</span>图片工具</div>
+          <div class="divider d-light"></div>
+          <div class="nav-item d-light active"><span class="icon">🎵</span>免费听歌</div>
+          <div class="nav-item d-light" style="padding-left:28px;font-size:11px;opacity:0.5"><span class="icon">🎧</span>歌单</div>
+          <div class="nav-item d-light" style="padding-left:28px;font-size:11px;opacity:0.3"><span class="icon">🔍</span>搜索</div>
+          <div class="divider d-light"></div>
+          <div class="nav-item d-light"><span class="icon">📚</span>免费小说</div>
+          <div class="nav-item d-light"><span class="icon">⚙️</span>设置</div>
+        </div>
+        <div class="main-content">
+          <div class="page-bg d-light">
+            <div class="page-header">
+              <div class="eyebrow-tag d-light">🎵 多源聚合</div>
+              <div class="page-title d-light">全网歌曲免费听</div>
+              <div class="page-sub d-light">畅听无阻，支持歌词同步</div>
+            </div>
+            <div class="search-row">
+              <input class="search-input d-light" placeholder="输入歌曲名、歌手..." readonly>
+              <button class="btn-primary d-light">搜索<span class="btn-icon" style="background:rgba(255,255,255,0.2)">→</span></button>
+            </div>
+            <div class="cards-grid">
+              <div class="card-shell d-light"><div class="card-inner d-light"><div class="card-img" style="background:#fdf3e3">🎼</div><div class="card-info"><div class="card-title d-light">华语金曲精选</div><div class="card-sub d-light">2.3亿次</div></div></div></div>
+              <div class="card-shell d-light"><div class="card-inner d-light"><div class="card-img" style="background:#fdf3e3">🌙</div><div class="card-info"><div class="card-title d-light">深夜必听</div><div class="card-sub d-light">8814万次</div></div></div></div>
+              <div class="card-shell d-light"><div class="card-inner d-light"><div class="card-img" style="background:#fdf3e3">🎸</div><div class="card-info"><div class="card-title d-light">摇滚经典</div><div class="card-sub d-light">1.2亿次</div></div></div></div>
+              <div class="card-shell d-light"><div class="card-inner d-light"><div class="card-img" style="background:#fdf3e3">☕</div><div class="card-info"><div class="card-title d-light">咖啡馆</div><div class="card-sub d-light">5640万次</div></div></div></div>
+            </div>
+          </div>
+          <div class="player-bar d-light">
+            <div class="player-cover" style="background:#fdf3e3">🎵</div>
+            <div class="player-info"><div class="player-title d-light">辛之谣</div><div class="player-sub d-light">薛之谦</div></div>
+            <div class="player-progress">
+              <div class="progress-track d-light"><div class="progress-fill d-light"></div></div>
+              <div class="progress-times d-light"><span>1:24</span><span>4:37</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn d-light">⏮</button>
+              <button class="play-btn d-light">⏸</button>
+              <button class="ctrl-btn d-light">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STYLE E ══ -->
+<div id="style-e" class="section-block">
+  <div class="section-header">
+    <div class="style-badge" style="background:rgba(244,114,182,0.1);color:#f472b6;border:1px solid rgba(244,114,182,0.2);">方案 E</div>
+    <h2 style="color:#00ff88;">霓虹深夜</h2>
+    <p>荧光绿 + 极暗背景 · Mono 字体 · 专为音乐播放器设计的感官体验</p>
+    <div class="ref-links">
+      <a href="https://www.spotify.com" target="_blank" class="ref-link">↗ Spotify (类似)</a>
+      <a href="https://vinyls.app" target="_blank" class="ref-link">↗ Vinyls</a>
+      <a href="https://casetify.com" target="_blank" class="ref-link">↗ Casetify</a>
+    </div>
+  </div>
+  <div class="preview-grid">
+    <div class="preview-panel e-dark">
+      <div class="preview-label e-dark">深色模式</div>
+      <div class="preview-inner">
+        <div class="sidebar e-dark">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo e-dark">B</div>
+            <span class="sidebar-title e-dark">BOXWANG</span>
+          </div>
+          <div class="nav-item e-dark"><span class="icon">📄</span>文档工具</div>
+          <div class="nav-item e-dark"><span class="icon">🖼</span>图片工具</div>
+          <div class="divider e-dark"></div>
+          <div class="nav-item e-dark active"><span class="icon">🎵</span>免费听歌</div>
+          <div class="nav-item e-dark" style="padding-left:28px;font-size:11px;opacity:0.5"><span class="icon">🎧</span>歌单</div>
+          <div class="nav-item e-dark" style="padding-left:28px;font-size:11px;opacity:0.3"><span class="icon">🔍</span>搜索</div>
+          <div class="divider e-dark"></div>
+          <div class="nav-item e-dark"><span class="icon">📚</span>免费小说</div>
+          <div class="nav-item e-dark"><span class="icon">⚙️</span>设置</div>
+        </div>
+        <div class="main-content">
+          <div class="page-bg e-dark" style="background:radial-gradient(ellipse at 30% 20%, rgba(0,255,136,0.04) 0%, transparent 60%), #050510">
+            <div class="page-header">
+              <div class="eyebrow-tag e-dark">◉ MUSIC</div>
+              <div class="page-title e-dark">全网歌曲免费听</div>
+              <div class="page-sub e-dark">畅听无阻，支持歌词同步</div>
+            </div>
+            <div class="search-row">
+              <input class="search-input e-dark" placeholder="输入歌曲名..." readonly>
+              <button class="btn-primary e-dark">搜索<span class="btn-icon" style="background:rgba(0,255,136,0.1);color:#00ff88">→</span></button>
+            </div>
+            <div class="cards-grid">
+              <div class="card-shell e-dark"><div class="card-inner e-dark"><div class="card-img">🎼</div><div class="card-info"><div class="card-title e-dark">华语金曲</div><div class="card-sub e-dark">2.3亿次</div></div></div></div>
+              <div class="card-shell e-dark"><div class="card-inner e-dark"><div class="card-img">🌙</div><div class="card-info"><div class="card-title e-dark">深夜必听</div><div class="card-sub e-dark">8814万次</div></div></div></div>
+              <div class="card-shell e-dark"><div class="card-inner e-dark"><div class="card-img">🎸</div><div class="card-info"><div class="card-title e-dark">摇滚经典</div><div class="card-sub e-dark">1.2亿次</div></div></div></div>
+              <div class="card-shell e-dark"><div class="card-inner e-dark"><div class="card-img">☕</div><div class="card-info"><div class="card-title e-dark">咖啡馆</div><div class="card-sub e-dark">5640万次</div></div></div></div>
+            </div>
+          </div>
+          <div class="player-bar e-dark">
+            <div class="player-cover" style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.1)">🎵</div>
+            <div class="player-info"><div class="player-title e-dark">辛之谣</div><div class="player-sub e-dark">薛之谦</div></div>
+            <div class="player-progress">
+              <div class="progress-track e-dark"><div class="progress-fill e-dark"></div></div>
+              <div class="progress-times e-dark" style="color:rgba(0,255,136,0.4)"><span>1:24</span><span>4:37</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn e-dark">⏮</button>
+              <button class="play-btn e-dark">⏸</button>
+              <button class="ctrl-btn e-dark">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="preview-panel e-light">
+      <div class="preview-label e-light">浅色模式</div>
+      <div class="preview-inner">
+        <div class="sidebar e-light">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo e-light">B</div>
+            <span class="sidebar-title e-light">BOXWANG</span>
+          </div>
+          <div class="nav-item e-light"><span class="icon">📄</span>文档工具</div>
+          <div class="nav-item e-light"><span class="icon">🖼</span>图片工具</div>
+          <div class="divider e-light"></div>
+          <div class="nav-item e-light active"><span class="icon">🎵</span>免费听歌</div>
+          <div class="nav-item e-light" style="padding-left:28px;font-size:11px;opacity:0.5"><span class="icon">🎧</span>歌单</div>
+          <div class="nav-item e-light" style="padding-left:28px;font-size:11px;opacity:0.3"><span class="icon">🔍</span>搜索</div>
+          <div class="divider e-light"></div>
+          <div class="nav-item e-light"><span class="icon">📚</span>免费小说</div>
+          <div class="nav-item e-light"><span class="icon">⚙️</span>设置</div>
+        </div>
+        <div class="main-content">
+          <div class="page-bg e-light">
+            <div class="page-header">
+              <div class="eyebrow-tag e-light">◉ MUSIC</div>
+              <div class="page-title e-light">全网歌曲免费听</div>
+              <div class="page-sub e-light">畅听无阻，支持歌词同步</div>
+            </div>
+            <div class="search-row">
+              <input class="search-input e-light" placeholder="输入歌曲名..." readonly>
+              <button class="btn-primary e-light">搜索<span class="btn-icon" style="background:rgba(255,255,255,0.2)">→</span></button>
+            </div>
+            <div class="cards-grid">
+              <div class="card-shell e-light"><div class="card-inner e-light"><div class="card-img" style="background:#ecfdf5">🎼</div><div class="card-info"><div class="card-title e-light">华语金曲</div><div class="card-sub e-light">2.3亿次</div></div></div></div>
+              <div class="card-shell e-light"><div class="card-inner e-light"><div class="card-img" style="background:#ecfdf5">🌙</div><div class="card-info"><div class="card-title e-light">深夜必听</div><div class="card-sub e-light">8814万次</div></div></div></div>
+              <div class="card-shell e-light"><div class="card-inner e-light"><div class="card-img" style="background:#ecfdf5">🎸</div><div class="card-info"><div class="card-title e-light">摇滚经典</div><div class="card-sub e-light">1.2亿次</div></div></div></div>
+              <div class="card-shell e-light"><div class="card-inner e-light"><div class="card-img" style="background:#ecfdf5">☕</div><div class="card-info"><div class="card-title e-light">咖啡馆</div><div class="card-sub e-light">5640万次</div></div></div></div>
+            </div>
+          </div>
+          <div class="player-bar e-light">
+            <div class="player-cover" style="background:#d1fae5">🎵</div>
+            <div class="player-info"><div class="player-title e-light">辛之谣</div><div class="player-sub e-light">薛之谦</div></div>
+            <div class="player-progress">
+              <div class="progress-track e-light"><div class="progress-fill e-light"></div></div>
+              <div class="progress-times e-light"><span>1:24</span><span>4:37</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn e-light">⏮</button>
+              <button class="play-btn e-light">⏸</button>
+              <button class="ctrl-btn e-light">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>设计参考</h4>
+      <a href="https://linear.app" target="_blank">Linear — 极简 SaaS</a>
+      <a href="https://www.framer.com" target="_blank">Framer — 渐变科技</a>
+      <a href="https://www.readwise.io/reader" target="_blank">Readwise — 阅读工具</a>
+      <a href="https://arc.net" target="_blank">Arc Browser — 现代浏览器</a>
+    </div>
+    <div class="footer-col">
+      <h4>字体参考</h4>
+      <a href="https://fonts.google.com/specimen/Plus+Jakarta+Sans" target="_blank">Plus Jakarta Sans</a>
+      <a href="https://fonts.google.com/specimen/Playfair+Display" target="_blank">Playfair Display</a>
+      <a href="https://fonts.google.com/noto/specimen/Noto+Serif+SC" target="_blank">Noto Serif SC</a>
+      <a href="https://fonts.google.com/specimen/Outfit" target="_blank">Outfit</a>
+    </div>
+  </div>
+  <p>BoxWang Style Preview · 选定方案后告知，立即全站实施</p>
+</footer>
+
+<script>
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// scrollspy
+const sections = ['style-a','style-b','style-c','style-d','style-e'];
+const styles   = ['A','B','C','D','E'];
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const idx = sections.indexOf(e.target.id);
+      document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
+      document.querySelector(`.nav-pill[data-style="${styles[idx]}"]`)?.classList.add('active');
+    }
+  });
+}, { rootMargin: '-40% 0px -50% 0px' });
+sections.forEach(id => { const el = document.getElementById(id); if(el) obs.observe(el); });
+</script>
+</body>
+</html>

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Song } from '@/types/music';
+import { useTheme } from '@/app/theme-context';
+import { NovelSource } from '@/lib/novel-sources';
 
 // 精美冒热气咖啡组件 — 可拖动
 function FloatingCoffee() {
@@ -466,6 +468,7 @@ interface Chapter {
 
 interface NovelReaderProps {
   onSidebarCollapse?: (collapsed: boolean) => void;
+  sidebarCollapsed?: boolean;
   playlist?: Song[];
   currentSong?: Song | null;
 }
@@ -474,29 +477,29 @@ interface NovelReaderProps {
 const THEMES = {
   light: {
     name: '浅色',
-    bg: '#faf7f2',
-    bgGradient: 'linear-gradient(180deg, #faf7f2 0%, #f5f0e8 100%)',
-    toolbarBg: 'rgba(250,247,242,0.95)',
-    text: '#3c3630',
-    textSecondary: '#8a7e72',
-    textMuted: '#b0a494',
-    border: 'rgba(180,160,130,0.2)',
-    cardBg: 'linear-gradient(135deg, #2c2218 0%, #3a2a1c 50%, #241a10 100%)',
-    cardBorder: 'rgba(80,60,35,0.6)',
-    cardText: '#e8ddd0',
-    cardTextSecondary: '#a89880',
-    cardAccent: '#d4a853',
-    drawerBg: 'linear-gradient(180deg, #faf7f2 0%, #f5f0e8 100%)',
-    drawerActive: 'rgba(120,80,30,0.1)',
+    bg: '#faf8f5',
+    bgGradient: 'linear-gradient(180deg, #faf8f5 0%, #f5f0e8 100%)',
+    toolbarBg: 'rgba(250,248,245,0.95)',
+    text: '#2c2418',
+    textSecondary: '#6b5e4f',
+    textMuted: '#9a8e7f',
+    border: 'rgba(180,150,100,0.15)',
+    cardBg: 'linear-gradient(135deg, #ffffff 0%, #fefdfb 50%, #faf8f5 100%)',
+    cardBorder: 'rgba(180,150,100,0.2)',
+    cardText: '#2c2418',
+    cardTextSecondary: '#6b5e4f',
+    cardAccent: '#8b6914',
+    drawerBg: 'linear-gradient(180deg, #faf8f5 0%, #f5f0e8 100%)',
+    drawerActive: 'rgba(139,105,20,0.08)',
     drawerActiveText: '#8b6914',
-    drawerText: '#5c5040',
-    chapterBg: 'rgba(42,32,20,0.85)',
-    chapterBorder: 'rgba(80,60,35,0.4)',
-    chapterText: '#d4c8b8',
-    chapterHoverText: '#e8c86a',
-    btnPrimary: 'linear-gradient(135deg, #8b6914 0%, #6b4f0e 100%)',
+    drawerText: '#6b5e4f',
+    chapterBg: 'rgba(255,255,255,0.95)',
+    chapterBorder: 'rgba(180,150,100,0.15)',
+    chapterText: '#2c2418',
+    chapterHoverText: '#8b6914',
+    btnPrimary: 'linear-gradient(135deg, #8b6914 0%, #a67c1a 100%)',
     btnPrimaryText: '#fff',
-    btnSecondary: 'rgba(42,32,20,0.6)',
+    btnSecondary: 'rgba(139,105,20,0.08)',
     btnSecondaryText: '#c8b898',
   },
   dark: {
@@ -565,7 +568,8 @@ const FONTS = [
   { key: 'lishu', name: '隶书', family: '"LiSu", "STLiti", "隶书", serif' },
 ];
 
-export default function NovelReader({ onSidebarCollapse, playlist = [], currentSong = null }: NovelReaderProps) {
+export default function NovelReader({ onSidebarCollapse, sidebarCollapsed = false, playlist = [], currentSong = null }: NovelReaderProps) {
+  const { theme: globalTheme } = useTheme();
   const [keyword, setKeyword] = useState('');
   const [books, setBooks] = useState<Book[]>([]);
   const [recommendBooks, setRecommendBooks] = useState<Book[]>([]);
@@ -579,11 +583,15 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
   const [hasSearched, setHasSearched] = useState(false);
   const [showChapters, setShowChapters] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [themeKey, setThemeKey] = useState<ThemeKey>('dark'); // Bug3: 默认深色模式
+  const [themeKey, setThemeKey] = useState<ThemeKey>(globalTheme === 'light' ? 'light' : 'dark');
   const [fontKey, setFontKey] = useState('serif');
   const [columnMode, setColumnMode] = useState<'single' | 'double'>('double');
   const [chapterOrder, setChapterOrder] = useState<'asc' | 'desc'>('asc');
   const [fontColorKey, setFontColorKey] = useState('default');
+  const [showSourceManager, setShowSourceManager] = useState(false);
+  const [sources, setSources] = useState<NovelSource[]>([]);
+  const [newSource, setNewSource] = useState({ name: '', url: '', searchPath: '/search.php?q=' });
+  const [editingSource, setEditingSource] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   // 字体颜色选项
@@ -599,7 +607,83 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
   const fontColor = FONT_COLORS[fontColorKey as keyof typeof FONT_COLORS];
   const textColor = fontColor.color || theme.text;
 
+  // 根据全局主题自动切换小说主题
+  useEffect(() => {
+    if (globalTheme === 'light') {
+      setThemeKey('light');
+    } else {
+      setThemeKey('dark');
+    }
+  }, [globalTheme]);
+
+  // 加载小说源配置
+  useEffect(() => {
+    loadSources();
+  }, []);
+
   useEffect(() => { loadRecommend(); }, []);
+
+  const loadSources = async () => {
+    try {
+      const res = await fetch('/api/novel/sources');
+      const data = await res.json();
+      if (data.sources) {
+        setSources(data.sources);
+      }
+    } catch (e) {
+      console.error('加载小说源失败:', e);
+    }
+  };
+
+  const handleAddSource = async () => {
+    if (!newSource.url) return;
+    try {
+      const res = await fetch('/api/novel/sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add', source: newSource }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSources(prev => [...prev, data.source]);
+        setNewSource({ name: '', url: '', searchPath: '/search.php?q=' });
+      }
+    } catch (e) {
+      console.error('添加源失败:', e);
+    }
+  };
+
+  const handleToggleSource = async (sourceId: string) => {
+    try {
+      const res = await fetch('/api/novel/sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle', source: { id: sourceId } }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSources(prev => prev.map(s => s.id === sourceId ? { ...s, enabled: !s.enabled } : s));
+      }
+    } catch (e) {
+      console.error('切换源状态失败:', e);
+    }
+  };
+
+  const handleDeleteSource = async (sourceId: string) => {
+    try {
+      const res = await fetch('/api/novel/sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', source: { id: sourceId } }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSources(prev => prev.filter(s => s.id !== sourceId));
+      }
+    } catch (e) {
+      console.error('删除源失败:', e);
+    }
+  };
 
   // Bug4: 进入阅读视图时自动收起侧边栏
   useEffect(() => {
@@ -760,8 +844,8 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
             {book.cover ? (
               <img src={book.cover} alt={book.name} className="w-full h-56 object-cover" style={{ borderBottom: `2px solid ${theme.cardBorder}` }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             ) : (
-              <div className="w-full h-56 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #3d2b1f, #2d1f14)' }}>
-                <span className="text-5xl font-bold text-white/20">{book.name.charAt(0)}</span>
+              <div className="w-full h-56 flex items-center justify-center" style={{ background: themeKey === 'light' ? 'linear-gradient(135deg, #f5f0e8, #e8e0d4)' : 'linear-gradient(135deg, #3d2b1f, #2d1f14)' }}>
+                <span className="text-5xl font-bold" style={{ color: themeKey === 'light' ? 'rgba(139,105,20,0.2)' : 'rgba(255,255,255,0.2)' }}>{book.name.charAt(0)}</span>
               </div>
             )}
             <div className="absolute bottom-0 left-0 right-0 h-16" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.4))' }}></div>
@@ -779,7 +863,7 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
       <div onClick={onClick} className="group relative flex gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
         <div className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full bg-gradient-to-b from-amber-500 to-amber-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         {book.cover ? (
-          <img src={book.cover} alt={book.name} className="w-16 h-[88px] object-cover rounded flex-shrink-0 shadow-md" style={{ border: '2px solid rgba(255,255,255,0.1)' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <img src={book.cover} alt={book.name} className="w-16 h-[88px] object-cover rounded flex-shrink-0 shadow-md" style={{ border: themeKey === 'light' ? '2px solid rgba(180,150,100,0.15)' : '2px solid rgba(255,255,255,0.1)' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         ) : (
           <CoverPlaceholder name={book.name} />
         )}
@@ -799,11 +883,11 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
     <div className="space-y-3">
       {[1,2,3].map(i => (
         <div key={i} className="flex gap-4 p-4 rounded-xl" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-          <div className="w-16 h-[88px] rounded animate-pulse" style={{ background: 'rgba(255,255,255,0.05)' }}></div>
+          <div className="w-16 h-[88px] rounded animate-pulse" style={{ background: themeKey === 'light' ? 'rgba(180,150,100,0.1)' : 'rgba(255,255,255,0.05)' }}></div>
           <div className="flex-1 space-y-2 py-1">
-            <div className="h-4 w-3/4 rounded animate-pulse" style={{ background: 'rgba(255,255,255,0.05)' }}></div>
-            <div className="h-3 w-1/3 rounded animate-pulse" style={{ background: 'rgba(255,255,255,0.03)' }}></div>
-            <div className="h-3 w-1/2 rounded animate-pulse" style={{ background: 'rgba(255,255,255,0.02)' }}></div>
+            <div className="h-4 w-3/4 rounded animate-pulse" style={{ background: themeKey === 'light' ? 'rgba(180,150,100,0.1)' : 'rgba(255,255,255,0.05)' }}></div>
+            <div className="h-3 w-1/3 rounded animate-pulse" style={{ background: themeKey === 'light' ? 'rgba(180,150,100,0.08)' : 'rgba(255,255,255,0.03)' }}></div>
+            <div className="h-3 w-1/2 rounded animate-pulse" style={{ background: themeKey === 'light' ? 'rgba(180,150,100,0.06)' : 'rgba(255,255,255,0.02)' }}></div>
           </div>
         </div>
       ))}
@@ -814,7 +898,7 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
   const SettingsPanel = () => (
     <>
       <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)}></div>
-      <div className="absolute right-0 top-full mt-2 z-50 w-56 rounded-xl shadow-2xl overflow-hidden" style={{ background: theme.toolbarBg, border: `1px solid ${theme.border}`, backdropFilter: 'blur(12px)' }}>
+      <div className="absolute right-0 top-full mt-2 z-50 w-64 rounded-xl shadow-2xl overflow-hidden" style={{ background: theme.toolbarBg, border: `1px solid ${theme.border}`, backdropFilter: 'blur(12px)' }}>
         <div className="p-3 border-b" style={{ borderColor: theme.border }}>
           <p className="text-xs font-medium mb-2" style={{ color: theme.textMuted }}>主题</p>
           <div className="flex gap-1.5">
@@ -839,7 +923,7 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
             <button onClick={() => setFontSize(s => Math.min(26, s + 2))} className="w-8 h-8 rounded-lg text-base font-medium transition-colors" style={{ background: theme.btnSecondary, color: theme.btnSecondaryText }}>A+</button>
           </div>
         </div>
-        <div className="p-3">
+        <div className="p-3 border-b" style={{ borderColor: theme.border }}>
           <p className="text-xs font-medium mb-2" style={{ color: theme.textMuted }}>字体颜色</p>
           <div className="flex gap-1.5">
             {Object.entries(FONT_COLORS).map(([key, fc]) => (
@@ -857,6 +941,21 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
               </button>
             ))}
           </div>
+        </div>
+        <div className="p-3">
+          <button
+            onClick={() => {
+              setShowSettings(false);
+              setShowSourceManager(true);
+            }}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors"
+            style={{ background: theme.btnSecondary, color: theme.btnSecondaryText }}
+          >
+            <span>小说源管理</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
     </>
@@ -889,7 +988,18 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
         {showChapters && (
           <>
             <div className="fixed inset-0 z-40 bg-black/30" onClick={() => setShowChapters(false)}></div>
-            <div className="fixed top-0 bottom-0 z-50 w-72 overflow-y-auto shadow-2xl" style={{ background: theme.drawerBg, left: '72px' }}>
+            <div
+              className="fixed top-0 bottom-0 z-50 w-72 overflow-y-auto shadow-2xl"
+              style={{
+                background: theme.drawerBg,
+                // 移动端侧边栏是 overlay，不占位，从 0 开始
+                // 桌面端根据侧边栏收起/展开动态计算
+                left: typeof window !== 'undefined' && window.innerWidth < 768
+                  ? '0px'
+                  : sidebarCollapsed ? '72px' : '256px',
+                transition: 'left 0.3s cubic-bezier(0.32,0.72,0,1)',
+              }}
+            >
               <div className="p-4 border-b" style={{ borderColor: theme.border }}>
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold" style={{ color: theme.text }}>目录</h3>
@@ -964,31 +1074,39 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
   // ==================== 主视图 ====================
   return (
     <div className="space-y-6">
-      {/* 标题区域 — 黑金风格 */}
+      {/* 标题区域 */}
       <div className="relative overflow-hidden rounded-2xl p-6" style={{
-        background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0a0a0a 100%)',
-        border: '1px solid rgba(232, 168, 73, 0.15)',
-        boxShadow: '0 4px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(232, 168, 73, 0.1)',
+        background: themeKey === 'light'
+          ? 'linear-gradient(135deg, #ffffff 0%, #f8f6f3 50%, #f0ece6 100%)'
+          : 'linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0a0a0a 100%)',
+        border: themeKey === 'light'
+          ? '1px solid rgba(180, 150, 100, 0.2)'
+          : '1px solid rgba(232, 168, 73, 0.15)',
+        boxShadow: themeKey === 'light'
+          ? '0 2px 12px rgba(100, 80, 50, 0.06)'
+          : '0 4px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(232, 168, 73, 0.1)',
       }}>
-        {/* 金色装饰线 */}
+        {/* 装饰线 */}
         <div className="absolute top-0 left-0 right-0 h-[1px]" style={{
-          background: 'linear-gradient(90deg, transparent, #e8a849, #f0c878, #e8a849, transparent)',
+          background: themeKey === 'light'
+            ? 'linear-gradient(90deg, transparent, #8b6914, #a67c1a, #8b6914, transparent)'
+            : 'linear-gradient(90deg, transparent, #e8a849, #f0c878, #e8a849, transparent)',
         }} />
         {/* 装饰纹理 */}
-        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e8a849' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }} />
+        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23${themeKey === 'light' ? '8b6914' : 'e8a849'}' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }} />
 
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-1">
-            <svg className="w-5 h-5" style={{ color: '#e8a849' }} fill="currentColor" viewBox="0 0 24 24"><path d="M21 4H3a1 1 0 00-1 1v14a1 1 0 001 1h18a1 1 0 001-1V5a1 1 0 00-1-1zM4 18V6h7v12H4zm9 0V6h7v12h-7z"/></svg>
-            <h2 className="text-lg font-bold tracking-wide" style={{ color: '#f0c878', fontFamily: 'serif' }}>免费看小说</h2>
+            <svg className="w-5 h-5" style={{ color: themeKey === 'light' ? '#8b6914' : '#e8a849' }} fill="currentColor" viewBox="0 0 24 24"><path d="M21 4H3a1 1 0 00-1 1v14a1 1 0 001 1h18a1 1 0 001-1V5a1 1 0 00-1-1zM4 18V6h7v12H4zm9 0V6h7v12h-7z"/></svg>
+            <h2 className="text-lg font-bold tracking-wide" style={{ color: themeKey === 'light' ? '#2c2418' : '#f0c878', fontFamily: 'serif' }}>免费看小说</h2>
           </div>
-          <p className="text-xs ml-7" style={{ color: 'rgba(232, 168, 73, 0.4)' }}>海量小说，随心阅读</p>
+          <p className="text-xs ml-7" style={{ color: themeKey === 'light' ? '#6b5e4f' : 'rgba(232, 168, 73, 0.4)' }}>海量小说，随心阅读</p>
         </div>
 
         <div className="relative mt-4 z-10">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(232, 168, 73, 0.4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: themeKey === 'light' ? '#9a8e7f' : 'rgba(232, 168, 73, 0.4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               <input
                 type="text"
                 value={keyword}
@@ -997,16 +1115,16 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
                 placeholder="搜索小说名或作者..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none transition-shadow"
                 style={{
-                  background: 'rgba(20,20,20,0.8)',
-                  color: '#f0c878',
-                  border: '1px solid rgba(232, 168, 73, 0.15)',
+                  background: themeKey === 'light' ? '#ffffff' : 'rgba(20,20,20,0.8)',
+                  color: themeKey === 'light' ? '#2c2418' : '#f0c878',
+                  border: themeKey === 'light' ? '1px solid rgba(180, 150, 100, 0.2)' : '1px solid rgba(232, 168, 73, 0.15)',
                 }}
               />
             </div>
             <button onClick={handleSearch} disabled={loading} className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50" style={{
-              background: 'linear-gradient(135deg, #e8a849 0%, #c07a2a 100%)',
-              color: '#000',
-              boxShadow: '0 0 15px rgba(232, 168, 73, 0.2)',
+              background: themeKey === 'light' ? 'linear-gradient(135deg, #8b6914 0%, #a67c1a 100%)' : 'linear-gradient(135deg, #e8a849 0%, #c07a2a 100%)',
+              color: '#fff',
+              boxShadow: themeKey === 'light' ? '0 2px 8px rgba(139, 105, 20, 0.2)' : '0 0 15px rgba(232, 168, 73, 0.2)',
             }}>
               {loading ? '搜索中...' : '搜索'}
             </button>
@@ -1015,20 +1133,33 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
       </div>
 
       {/* 推荐小说 */}
-      {!hasSearched && !selectedBook && (
+      {!hasSearched && !selectedBook && !showSourceManager && (
         <div>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-1 h-5 rounded-full bg-gradient-to-b from-amber-700 to-red-800"></div>
               <h3 className="font-bold tracking-wide" style={{ color: theme.text, fontFamily: 'serif' }}>推荐阅读</h3>
             </div>
-            <div className="flex items-center rounded-lg overflow-hidden" style={{ border: `1px solid ${theme.border}` }}>
-              <button onClick={() => setColumnMode('single')} className="px-2.5 py-1.5 text-xs transition-colors" style={{ background: columnMode === 'single' ? theme.btnPrimary : 'transparent', color: columnMode === 'single' ? theme.btnPrimaryText : theme.textMuted }}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowSourceManager(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors"
+                style={{ background: theme.btnSecondary, color: theme.btnSecondaryText }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                小说源
               </button>
-              <button onClick={() => setColumnMode('double')} className="px-2.5 py-1.5 text-xs transition-colors" style={{ background: columnMode === 'double' ? theme.btnPrimary : 'transparent', color: columnMode === 'double' ? theme.btnPrimaryText : theme.textMuted }}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
-              </button>
+              <div className="flex items-center rounded-lg overflow-hidden" style={{ border: `1px solid ${theme.border}` }}>
+                <button onClick={() => setColumnMode('single')} className="px-2.5 py-1.5 text-xs transition-colors" style={{ background: columnMode === 'single' ? theme.btnPrimary : 'transparent', color: columnMode === 'single' ? theme.btnPrimaryText : theme.textMuted }}>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                </button>
+                <button onClick={() => setColumnMode('double')} className="px-2.5 py-1.5 text-xs transition-colors" style={{ background: columnMode === 'double' ? theme.btnPrimary : 'transparent', color: columnMode === 'double' ? theme.btnPrimaryText : theme.textMuted }}>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
+                </button>
+              </div>
             </div>
           </div>
           {recommendLoading ? <Skeleton /> : recommendBooks.length > 0 ? (
@@ -1036,6 +1167,95 @@ export default function NovelReader({ onSidebarCollapse, playlist = [], currentS
               {recommendBooks.map((book, i) => <BookCard key={book.id} book={book} onClick={() => handleSelectBook(book)} index={i} mode={columnMode} />)}
             </div>
           ) : <p className="text-center py-8 text-sm" style={{ color: theme.textMuted }}>暂无推荐</p>}
+        </div>
+      )}
+
+      {/* 小说源管理 */}
+      {showSourceManager && !selectedBook && (
+        <div className="rounded-2xl overflow-hidden" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
+          <div className="p-4 border-b" style={{ borderColor: theme.border }}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold" style={{ color: theme.text }}>小说源管理</h3>
+              <button onClick={() => setShowSourceManager(false)} style={{ color: theme.textMuted }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <p className="text-xs mt-1" style={{ color: theme.textMuted }}>管理小说搜索源，可添加自定义源</p>
+          </div>
+
+          {/* 添加新源 */}
+          <div className="p-4 border-b" style={{ borderColor: theme.border }}>
+            <p className="text-xs font-medium mb-3" style={{ color: theme.textMuted }}>添加新源</p>
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={newSource.name}
+                onChange={(e) => setNewSource(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="源名称（如：笔趣阁）"
+                className="w-full px-3 py-2 rounded-lg text-sm"
+                style={{ background: themeKey === 'light' ? '#fff' : 'rgba(255,255,255,0.05)', color: theme.text, border: `1px solid ${theme.border}` }}
+              />
+              <input
+                type="text"
+                value={newSource.url}
+                onChange={(e) => setNewSource(prev => ({ ...prev, url: e.target.value }))}
+                placeholder="源地址（如：https://www.example.com）"
+                className="w-full px-3 py-2 rounded-lg text-sm"
+                style={{ background: themeKey === 'light' ? '#fff' : 'rgba(255,255,255,0.05)', color: theme.text, border: `1px solid ${theme.border}` }}
+              />
+              <input
+                type="text"
+                value={newSource.searchPath}
+                onChange={(e) => setNewSource(prev => ({ ...prev, searchPath: e.target.value }))}
+                placeholder="搜索路径（如：/search.php?q=）"
+                className="w-full px-3 py-2 rounded-lg text-sm"
+                style={{ background: themeKey === 'light' ? '#fff' : 'rgba(255,255,255,0.05)', color: theme.text, border: `1px solid ${theme.border}` }}
+              />
+              <button
+                onClick={handleAddSource}
+                disabled={!newSource.url}
+                className="w-full px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+                style={{ background: theme.btnPrimary, color: theme.btnPrimaryText }}
+              >
+                添加源
+              </button>
+            </div>
+          </div>
+
+          {/* 源列表 */}
+          <div className="p-4">
+            <p className="text-xs font-medium mb-3" style={{ color: theme.textMuted }}>已添加的源</p>
+            <div className="space-y-2">
+              {sources.map(source => (
+                <div key={source.id} className="flex items-center justify-between p-3 rounded-lg" style={{ background: themeKey === 'light' ? 'rgba(139,105,20,0.05)' : 'rgba(255,255,255,0.03)', border: `1px solid ${theme.border}` }}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: theme.text }}>{source.name}</p>
+                    <p className="text-xs truncate" style={{ color: theme.textMuted }}>{source.url}</p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-3">
+                    <button
+                      onClick={() => handleToggleSource(source.id)}
+                      className="w-10 h-6 rounded-full transition-colors relative"
+                      style={{ background: source.enabled ? (themeKey === 'light' ? '#8b6914' : '#e8a849') : (themeKey === 'light' ? '#d4d0c8' : '#3a3a3a') }}
+                    >
+                      <div className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform" style={{ left: source.enabled ? '22px' : '2px' }} />
+                    </button>
+                    {!source.id.startsWith('biquge') && (
+                      <button
+                        onClick={() => handleDeleteSource(source.id)}
+                        className="p-1 rounded transition-colors"
+                        style={{ color: theme.textMuted }}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

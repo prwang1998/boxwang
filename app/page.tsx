@@ -19,6 +19,10 @@ import ApiTester from '@/components/ApiTester';
 import NovelReader from '@/components/NovelReader';
 import AboutPage from '@/components/AboutPage';
 import { useTheme } from '@/app/theme-context';
+import { useToast } from '@/app/toast-context';
+import { extractDominantColor, applyAmbientColor } from '@/lib/color-extract';
+import CharReveal from '@/components/CharReveal';
+import PlaylistSkeleton from '@/components/PlaylistSkeleton';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
 import { isDocxFile, isPdfFile, downloadBlob } from '@/lib/file-utils';
@@ -27,6 +31,7 @@ import { FileInfo, FileStatus, ConvertState, Song, PlayUrl, Playlist } from '@/t
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
+  const { toast } = useToast();
   const [activeItem, setActiveItem] = useState('format-convert');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -203,7 +208,7 @@ export default function Home() {
       const playlists = await searchPlaylists(keyword);
       setSearchPlaylistsResult(playlists);
     } catch (error: any) {
-      alert(error.message || '搜索失败');
+      toast(error.message || '搜索失败', 'error');
     } finally {
       setSearchLoading(false);
     }
@@ -216,7 +221,7 @@ export default function Home() {
       if (!response.ok) throw new Error(data.error || '获取播放链接失败');
       return data;
     } catch (error: any) {
-      alert(error.message || '获取播放链接失败');
+      toast(error.message || '获取播放链接失败', 'error');
       return null;
     }
   };
@@ -230,6 +235,24 @@ export default function Home() {
     if (url) setPlayUrl(url);
     setMusicLoading(false);
   };
+
+  // 封面取色 → 环境光
+  useEffect(() => {
+    if (!currentSong?.cover) {
+      applyAmbientColor(null);
+      document.getElementById('ambient-bg')?.classList.remove('active');
+      return;
+    }
+    extractDominantColor(currentSong.cover).then((color) => {
+      applyAmbientColor(color);
+      if (color) {
+        document.getElementById('ambient-bg')?.classList.add('active');
+        // 播放条环境光晕
+        const glow = document.getElementById('player-ambient-glow');
+        if (glow) glow.classList.add('active');
+      }
+    });
+  }, [currentSong?.cover]);
 
   const handlePlayAll = async () => {
     if (!selectedPlaylist || selectedPlaylist.tracks.length === 0) return;
@@ -266,10 +289,10 @@ export default function Home() {
           tracks: detail.tracks,
         });
       } else {
-        alert('获取歌单详情失败');
+        toast('获取歌单详情失败', 'error');
       }
     } catch (error) {
-      alert('获取歌单详情失败');
+      toast('获取歌单详情失败', 'error');
     } finally {
       setPlaylistLoading(false);
     }
@@ -288,35 +311,54 @@ export default function Home() {
         return <ImageDownload />;
       case 'music-listen':
         return (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-8 animate-fade-in">
             {/* Music Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-display font-bold text-obsidian-50">全网歌曲免费听</h2>
-                <p className="text-sm text-obsidian-100 mt-1">多源聚合，畅听无阻</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {!showSearch && !selectedPlaylist && (
+            <div className="relative overflow-hidden">
+              {/* 装饰大字符 */}
+              <span className="absolute right-0 top-0 text-[120px] leading-none font-display font-bold select-none pointer-events-none opacity-[0.03] translate-y-[-20px]">♪</span>
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pt-6 pb-2">
+                <div>
+                  <span className="eyebrow">多源聚合</span>
+                  <h2 className="text-4xl sm:text-5xl font-display font-bold text-obsidian-50 leading-tight tracking-[-0.03em] italic mt-2">
+                    <CharReveal text="全网歌曲免费听" stagger={50} delay={100} />
+                  </h2>
+                  <p className="text-sm text-obsidian-100 mt-3 max-w-xs">多源聚合，畅听无阻，支持歌词同步</p>
+                </div>
+                <div className="flex items-center gap-2 pb-1">
+                  {!showSearch && !selectedPlaylist && (
+                    <button
+                      onClick={() => setShowSearch(true)}
+                      className="group px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]"
+                      style={{
+                        background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                        color: '#0c0907',
+                        boxShadow: '0 4px 20px rgba(232,168,73,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
+                      }}
+                    >
+                      搜索歌曲
+                      <span className="w-6 h-6 rounded-full bg-black/10 flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-110">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </span>
+                    </button>
+                  )}
                   <button
-                    onClick={() => setShowSearch(true)}
-                    className="px-4 py-2.5 bg-primary/15 text-primary border border-primary/20 rounded-xl hover:bg-primary/25 transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                    onClick={() => setShowMusicSettings(!showMusicSettings)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-110"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      color: 'rgba(255,255,255,0.4)',
+                    }}
+                    title="网易云登录设置"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    搜索歌曲
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowMusicSettings(!showMusicSettings)}
-                  className="w-10 h-10 rounded-xl bg-surface-elevated border border-white/[0.06] text-obsidian-100 hover:text-primary hover:border-primary/20 transition-all duration-200 flex items-center justify-center"
-                  title="网易云登录设置"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </button>
+                </div>
               </div>
             </div>
 
@@ -333,7 +375,7 @@ export default function Home() {
                     value={musicUInput}
                     onChange={(e) => setMusicUInput(e.target.value)}
                     placeholder="粘贴 MUSIC_U Cookie 值"
-                    className="flex-1 px-4 py-2.5 text-sm rounded-xl bg-obsidian border border-white/[0.06] focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                    className="flex-1 px-4 py-2.5 text-sm rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
                   />
                   <div className="flex gap-2">
                     <button
@@ -410,10 +452,7 @@ export default function Home() {
             {!showSearch && !selectedPlaylist && (
               <>
                 {playlistLoading && (
-                  <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary/30 border-t-primary"></div>
-                    <p className="mt-3 text-obsidian-100 text-sm">加载推荐歌单...</p>
-                  </div>
+                  <PlaylistSkeleton count={10} />
                 )}
 
                 {!playlistLoading && recommendPlaylists.length > 0 && (
@@ -446,7 +485,7 @@ export default function Home() {
           </div>
         );
       case 'novel-reader':
-        return <NovelReader onSidebarCollapse={setSidebarCollapsed} playlist={playQueue} currentSong={currentSong} />;
+        return <NovelReader onSidebarCollapse={setSidebarCollapsed} sidebarCollapsed={sidebarCollapsed} playlist={playQueue} currentSong={currentSong} />;
       case 'parse-channel-config':
         return (
           <div className="space-y-6 animate-fade-in">
@@ -469,16 +508,49 @@ export default function Home() {
         );
       case 'about':
         return <AboutPage />;
+      case 'settings':
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div>
+              <h2 className="text-2xl font-display font-bold text-obsidian-50">设置</h2>
+              <p className="text-sm text-obsidian-100 mt-1">应用外观与偏好设置</p>
+            </div>
+            <div className="bg-surface rounded-2xl p-5 border border-white/[0.06]">
+              <h3 className="text-sm font-semibold text-obsidian-50 mb-4">外观设置</h3>
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/[0.06] transition-all duration-200"
+              >
+                <span className="text-lg">{theme === 'dark' ? '🌙' : '☀️'}</span>
+                <span className="text-sm text-obsidian-50 flex-1 text-left">
+                  {theme === 'dark' ? '深色模式' : '浅色模式'}
+                </span>
+                <div
+                  className={`w-9 h-5 rounded-full transition-all duration-300 relative ${
+                    theme === 'dark' ? 'bg-primary' : ''
+                  }`}
+                  style={theme === 'light' ? { background: 'rgba(180,150,100,0.25)' } : {}}
+                >
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 ${
+                    theme === 'dark' ? 'left-[18px]' : 'left-0.5'
+                  }`} />
+                </div>
+              </button>
+            </div>
+          </div>
+        );
       case 'format-convert':
       default:
         return (
           <div className="animate-fade-in">
             {/* Hero Section */}
-            <div className="mb-10">
-              <h1 className="text-2xl sm:text-3xl font-display font-bold text-obsidian-50 mb-2">
-                文档格式转换
+            <div className="relative overflow-hidden mb-10 pt-6 pb-2">
+              <span className="absolute right-0 top-0 text-[120px] leading-none font-display font-bold select-none pointer-events-none opacity-[0.03] translate-y-[-10px]">⇄</span>
+              <span className="eyebrow">在线工具</span>
+              <h1 className="text-4xl sm:text-5xl font-display font-bold text-obsidian-50 mb-3 mt-2 leading-tight tracking-[-0.03em] italic">
+                <CharReveal text="文档格式转换" stagger={55} delay={80} />
               </h1>
-              <p className="text-obsidian-100 text-sm">上传 DOCX 或 PDF 文件，在线预览并转换格式</p>
+              <p className="text-obsidian-100 text-sm max-w-xs">上传 DOCX 或 PDF 文件，在线预览并转换格式</p>
             </div>
 
             <div className="max-w-4xl mx-auto space-y-6">
@@ -542,7 +614,7 @@ export default function Home() {
       </div>
 
       <Sidebar activeItem={activeItem} onItemClick={setActiveItem} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
-      <main className={`flex-1 p-4 md:p-8 pt-14 md:pt-8 pb-24 relative z-10 overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'}`}>
+      <main className={`flex-1 p-4 md:p-8 pt-14 md:pt-8 pb-36 relative z-10 overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'}`}>
         {/* Mobile hamburger button */}
         <button
           onClick={() => setSidebarOpen(true)}
@@ -552,7 +624,13 @@ export default function Home() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        {renderContent()}
+        <div
+          key={activeItem}
+          className="page-transition-enter-active"
+          style={{ animation: 'pageEnter 0.35s cubic-bezier(0.32,0.72,0,1) both' }}
+        >
+          {renderContent()}
+        </div>
       </main>
 
       {/* Player Page */}
