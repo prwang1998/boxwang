@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTheme } from '@/app/theme-context';
 
 interface MusicSearchProps {
   onSearch: (keyword: string, source: string) => void;
@@ -10,6 +11,7 @@ interface MusicSearchProps {
 export default function MusicSearch({ onSearch, loading }: MusicSearchProps) {
   const [keyword, setKeyword] = useState('');
   const [focused, setFocused] = useState(false);
+  const { theme } = useTheme();
 
   const handleSearch = () => {
     if (keyword.trim()) {
@@ -36,6 +38,8 @@ export default function MusicSearch({ onSearch, loading }: MusicSearchProps) {
           onKeyDown={handleKeyDown}
           placeholder="输入歌曲名、歌手..."
           className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-surface border border-white/[0.06] text-obsidian-50 text-sm placeholder:text-obsidian-100/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all relative z-10"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           disabled={loading}
         />
       </div>
