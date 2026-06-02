@@ -27,21 +27,49 @@ export default function PlaylistDetail({ name, cover, tracks, onPlay, onPlayAll,
 
   return (
     <div className="relative min-h-[600px] rounded-2xl overflow-hidden animate-fade-in">
-      {/* Cover background */}
+      {/* Cover background — 大模糊颜色渗透 */}
       <div className="absolute inset-0 z-0">
         {cover ? (
-          <div
-            className="w-full h-full bg-cover bg-center"
-            style={{
-              backgroundImage: `url(${cover})`,
-              filter: isLight ? 'blur(60px) brightness(0.7) saturate(1.2)' : 'blur(60px) brightness(0.2) saturate(1.5)',
-              transform: 'scale(1.3)',
-            }}
-          />
+          <>
+            {/* 底层：大范围颜色扩散 */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${cover})`,
+                filter: isLight
+                  ? 'blur(120px) brightness(0.75) saturate(2)'
+                  : 'blur(120px) brightness(0.15) saturate(2.5)',
+                transform: 'scale(1.5)',
+              }}
+            />
+            {/* 中层：锐化一层增强颜色感 */}
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-30"
+              style={{
+                backgroundImage: `url(${cover})`,
+                filter: isLight
+                  ? 'blur(40px) brightness(0.8) saturate(1.5)'
+                  : 'blur(40px) brightness(0.2) saturate(2)',
+                transform: 'scale(1.2)',
+              }}
+            />
+            {/* 顶层：渐变遮罩让内容可读 */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: isLight
+                  ? 'linear-gradient(to bottom, rgba(250,248,245,0.55) 0%, rgba(250,248,245,0.75) 60%, rgba(250,248,245,0.9) 100%)'
+                  : 'linear-gradient(to bottom, rgba(12,9,7,0.2) 0%, rgba(12,9,7,0.5) 50%, rgba(12,9,7,0.8) 100%)',
+              }}
+            />
+          </>
         ) : (
-          <div className="w-full h-full" style={{ background: isLight ? 'linear-gradient(135deg, #f5f0e8, #e8e0d4)' : 'linear-gradient(to bottom, #242424, #0f0f0f)' }} />
+          <div className="w-full h-full" style={{
+            background: isLight
+              ? 'linear-gradient(135deg, #f5f0e8, #e8e0d4)'
+              : 'linear-gradient(to bottom, #1c1510, #0c0907)',
+          }} />
         )}
-        <div className="absolute inset-0" style={{ background: isLight ? 'linear-gradient(to bottom, rgba(255,255,255,0.7), rgba(255,255,255,0.85))' : 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5), rgba(0,0,0,0.7))' }} />
       </div>
 
       {/* Content */}

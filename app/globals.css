@@ -1051,11 +1051,13 @@ input[type="range"]::-moz-range-thumb {
 @keyframes pageEnter {
   0% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(16px);
+    filter: blur(3px);
   }
   100% {
     opacity: 1;
     transform: translateY(0);
+    filter: blur(0);
   }
 }
 
@@ -1558,4 +1560,337 @@ input[type="range"]::-moz-range-thumb {
   background: #ffffff;
   border-color: rgba(180, 150, 100, 0.2);
   color: #2c2418;
+}
+
+/* =====================================================
+   SPOTLIGHT BORDER — 卡片悬停边框发光
+   ===================================================== */
+
+.spotlight-border {
+  --spotlight-x: 50%;
+  --spotlight-y: 50%;
+  position: relative;
+}
+
+.spotlight-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  background: radial-gradient(
+    circle at var(--spotlight-x) var(--spotlight-y),
+    rgba(232, 168, 73, 0.6) 0%,
+    rgba(232, 168, 73, 0.2) 30%,
+    transparent 70%
+  );
+  padding: 1px;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+}
+
+.spotlight-border:hover::before {
+  opacity: 1;
+}
+
+[data-theme="light"] .spotlight-border::before {
+  background: radial-gradient(
+    circle at var(--spotlight-x) var(--spotlight-y),
+    rgba(139, 105, 20, 0.5) 0%,
+    rgba(139, 105, 20, 0.15) 30%,
+    transparent 70%
+  );
+}
+
+/* =====================================================
+   AMBIENT COLOR SYSTEM — 封面色彩环境光
+   ===================================================== */
+
+:root {
+  --ambient-r: 232;
+  --ambient-g: 168;
+  --ambient-b: 73;
+  --ambient-transition: 1.5s;
+}
+
+/* 环境光背景层 — 跟随封面主色 */
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition:
+    background var(--ambient-transition) cubic-bezier(0.4, 0, 0.2, 1),
+    opacity var(--ambient-transition) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ambient-bg.active {
+  opacity: 1;
+  background:
+    radial-gradient(
+      ellipse 60% 50% at 30% 20%,
+      rgba(var(--ambient-r), var(--ambient-g), var(--ambient-b), 0.08) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 80% 80%,
+      rgba(var(--ambient-r), var(--ambient-g), var(--ambient-b), 0.05) 0%,
+      transparent 70%
+    );
+}
+
+[data-theme="light"] .ambient-bg.active {
+  background:
+    radial-gradient(
+      ellipse 60% 50% at 30% 20%,
+      rgba(var(--ambient-r), var(--ambient-g), var(--ambient-b), 0.06) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 80% 80%,
+      rgba(var(--ambient-r), var(--ambient-g), var(--ambient-b), 0.04) 0%,
+      transparent 70%
+    );
+}
+
+/* 播放条底部环境光晕 */
+.player-ambient-glow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  border-radius: 9999px;
+  pointer-events: none;
+  opacity: 0;
+  transition: all var(--ambient-transition) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.player-ambient-glow.active {
+  opacity: 0.6;
+  box-shadow:
+    0 0 20px 4px rgba(var(--ambient-r), var(--ambient-g), var(--ambient-b), 0.4),
+    0 0 60px 10px rgba(var(--ambient-r), var(--ambient-g), var(--ambient-b), 0.15);
+  background: rgba(var(--ambient-r), var(--ambient-g), var(--ambient-b), 0.8);
+}
+
+/* =====================================================
+   NOISE TEXTURE — 全局胶片颗粒感
+   ===================================================== */
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  mix-blend-mode: overlay;
+}
+
+[data-theme="light"] body::before {
+  opacity: 0.025;
+  mix-blend-mode: multiply;
+}
+
+/* =====================================================
+   SPOTLIGHT CURSOR — 鼠标光晕
+   ===================================================== */
+
+.spotlight-cursor {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s cubic-bezier(0.32,0.72,0,1),
+              height 0.4s cubic-bezier(0.32,0.72,0,1),
+              opacity 0.3s ease;
+  mix-blend-mode: screen;
+}
+
+[data-theme="light"] .spotlight-cursor {
+  mix-blend-mode: multiply;
+}
+
+/* =====================================================
+   CUSTOM CURSOR — 自定义精致光标
+   ===================================================== */
+
+body.custom-cursor-active,
+body.custom-cursor-active * {
+  cursor: none !important;
+}
+
+.cursor-dot {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10000;
+  transform: translate(-50%, -50%);
+  background: #e8a849;
+  box-shadow: 0 0 6px rgba(232, 168, 73, 0.6);
+  transition: transform 0.1s cubic-bezier(0.32,0.72,0,1),
+              width 0.3s cubic-bezier(0.32,0.72,0,1),
+              height 0.3s cubic-bezier(0.32,0.72,0,1),
+              opacity 0.3s ease;
+}
+
+.cursor-ring {
+  position: fixed;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  border: 1.5px solid rgba(232, 168, 73, 0.5);
+  transition: transform 0.15s cubic-bezier(0.32,0.72,0,1),
+              width 0.4s cubic-bezier(0.32,0.72,0,1),
+              height 0.4s cubic-bezier(0.32,0.72,0,1),
+              opacity 0.3s ease,
+              border-color 0.3s ease;
+}
+
+.cursor-dot.clicking {
+  transform: translate(-50%, -50%) scale(0.6);
+  background: #f0c878;
+}
+
+.cursor-ring.clicking {
+  transform: translate(-50%, -50%) scale(0.85);
+  border-color: rgba(232, 168, 73, 0.9);
+}
+
+.cursor-dot.hovering {
+  width: 12px;
+  height: 12px;
+  background: #f0c878;
+}
+
+.cursor-ring.hovering {
+  width: 40px;
+  height: 40px;
+  border-color: rgba(232, 168, 73, 0.3);
+}
+
+[data-theme="light"] .cursor-dot {
+  background: #8b6914;
+  box-shadow: 0 0 6px rgba(139, 105, 20, 0.4);
+}
+
+[data-theme="light"] .cursor-ring {
+  border-color: rgba(139, 105, 20, 0.4);
+}
+
+/* =====================================================
+   CHAR REVEAL — 字符逐个浮现
+   ===================================================== */
+
+.char-reveal-wrapper {
+  display: inline-block;
+  overflow: hidden;
+}
+
+.char-reveal {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(30px);
+  filter: blur(6px);
+  animation: charReveal 0.7s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes charReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* =====================================================
+   SKELETON SHIMMER — 骨架屏
+   ===================================================== */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(232, 168, 73, 0.06) 40%,
+    rgba(232, 168, 73, 0.12) 50%,
+    rgba(232, 168, 73, 0.06) 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+[data-theme="light"] .skeleton::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 105, 20, 0.04) 40%,
+    rgba(139, 105, 20, 0.08) 50%,
+    rgba(139, 105, 20, 0.04) 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.8s ease-in-out infinite;
+}
+
+/* =====================================================
+   PAGE TRANSITION — 页面切换
+   ===================================================== */
+
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(16px);
+  filter: blur(3px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+  transition:
+    opacity 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+    filter 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }

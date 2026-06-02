@@ -20,6 +20,9 @@ import NovelReader from '@/components/NovelReader';
 import AboutPage from '@/components/AboutPage';
 import { useTheme } from '@/app/theme-context';
 import { useToast } from '@/app/toast-context';
+import { extractDominantColor, applyAmbientColor } from '@/lib/color-extract';
+import CharReveal from '@/components/CharReveal';
+import PlaylistSkeleton from '@/components/PlaylistSkeleton';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
 import { isDocxFile, isPdfFile, downloadBlob } from '@/lib/file-utils';
@@ -233,6 +236,24 @@ export default function Home() {
     setMusicLoading(false);
   };
 
+  // 封面取色 → 环境光
+  useEffect(() => {
+    if (!currentSong?.cover) {
+      applyAmbientColor(null);
+      document.getElementById('ambient-bg')?.classList.remove('active');
+      return;
+    }
+    extractDominantColor(currentSong.cover).then((color) => {
+      applyAmbientColor(color);
+      if (color) {
+        document.getElementById('ambient-bg')?.classList.add('active');
+        // 播放条环境光晕
+        const glow = document.getElementById('player-ambient-glow');
+        if (glow) glow.classList.add('active');
+      }
+    });
+  }, [currentSong?.cover]);
+
   const handlePlayAll = async () => {
     if (!selectedPlaylist || selectedPlaylist.tracks.length === 0) return;
     setPlayQueue(selectedPlaylist.tracks);
@@ -299,7 +320,7 @@ export default function Home() {
                 <div>
                   <span className="eyebrow">多源聚合</span>
                   <h2 className="text-4xl sm:text-5xl font-display font-bold text-obsidian-50 leading-tight tracking-[-0.03em] italic mt-2">
-                    全网歌曲<br className="hidden sm:block" />免费听
+                    <CharReveal text="全网歌曲免费听" stagger={50} delay={100} />
                   </h2>
                   <p className="text-sm text-obsidian-100 mt-3 max-w-xs">多源聚合，畅听无阻，支持歌词同步</p>
                 </div>
@@ -431,10 +452,7 @@ export default function Home() {
             {!showSearch && !selectedPlaylist && (
               <>
                 {playlistLoading && (
-                  <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary/30 border-t-primary"></div>
-                    <p className="mt-3 text-obsidian-100 text-sm">加载推荐歌单...</p>
-                  </div>
+                  <PlaylistSkeleton count={10} />
                 )}
 
                 {!playlistLoading && recommendPlaylists.length > 0 && (
@@ -467,7 +485,7 @@ export default function Home() {
           </div>
         );
       case 'novel-reader':
-        return <NovelReader onSidebarCollapse={setSidebarCollapsed} playlist={playQueue} currentSong={currentSong} />;
+        return <NovelReader onSidebarCollapse={setSidebarCollapsed} sidebarCollapsed={sidebarCollapsed} playlist={playQueue} currentSong={currentSong} />;
       case 'parse-channel-config':
         return (
           <div className="space-y-6 animate-fade-in">
@@ -530,7 +548,7 @@ export default function Home() {
               <span className="absolute right-0 top-0 text-[120px] leading-none font-display font-bold select-none pointer-events-none opacity-[0.03] translate-y-[-10px]">⇄</span>
               <span className="eyebrow">在线工具</span>
               <h1 className="text-4xl sm:text-5xl font-display font-bold text-obsidian-50 mb-3 mt-2 leading-tight tracking-[-0.03em] italic">
-                文档格式转换
+                <CharReveal text="文档格式转换" stagger={55} delay={80} />
               </h1>
               <p className="text-obsidian-100 text-sm max-w-xs">上传 DOCX 或 PDF 文件，在线预览并转换格式</p>
             </div>
@@ -606,7 +624,13 @@ export default function Home() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        {renderContent()}
+        <div
+          key={activeItem}
+          className="page-transition-enter-active"
+          style={{ animation: 'pageEnter 0.35s cubic-bezier(0.32,0.72,0,1) both' }}
+        >
+          {renderContent()}
+        </div>
       </main>
 
       {/* Player Page */}
