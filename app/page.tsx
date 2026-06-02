@@ -19,6 +19,7 @@ import ApiTester from '@/components/ApiTester';
 import NovelReader from '@/components/NovelReader';
 import AboutPage from '@/components/AboutPage';
 import { useTheme } from '@/app/theme-context';
+import { useToast } from '@/app/toast-context';
 import { previewDocx, convertDocxToPdf } from '@/lib/docx-to-pdf';
 import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
 import { isDocxFile, isPdfFile, downloadBlob } from '@/lib/file-utils';
@@ -27,6 +28,7 @@ import { FileInfo, FileStatus, ConvertState, Song, PlayUrl, Playlist } from '@/t
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
+  const { toast } = useToast();
   const [activeItem, setActiveItem] = useState('format-convert');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -203,7 +205,7 @@ export default function Home() {
       const playlists = await searchPlaylists(keyword);
       setSearchPlaylistsResult(playlists);
     } catch (error: any) {
-      alert(error.message || '搜索失败');
+      toast(error.message || '搜索失败', 'error');
     } finally {
       setSearchLoading(false);
     }
@@ -216,7 +218,7 @@ export default function Home() {
       if (!response.ok) throw new Error(data.error || '获取播放链接失败');
       return data;
     } catch (error: any) {
-      alert(error.message || '获取播放链接失败');
+      toast(error.message || '获取播放链接失败', 'error');
       return null;
     }
   };
@@ -266,10 +268,10 @@ export default function Home() {
           tracks: detail.tracks,
         });
       } else {
-        alert('获取歌单详情失败');
+        toast('获取歌单详情失败', 'error');
       }
     } catch (error) {
-      alert('获取歌单详情失败');
+      toast('获取歌单详情失败', 'error');
     } finally {
       setPlaylistLoading(false);
     }
