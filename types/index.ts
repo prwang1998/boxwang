@@ -17,3 +17,4 @@ export interface ConvertState {
 }
 
 export * from './music';
+export * from './movie';

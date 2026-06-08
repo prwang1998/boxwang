@@ -34,6 +34,7 @@ const menuItems: MenuItem[] = [
     label: '视频工具',
     icon: '🎬',
     children: [
+      { id: 'movie-watch', label: '免费看片', icon: '🎥' },
       { id: 'video-convert', label: '格式转换', icon: '🔄' },
       { id: 'video-compress', label: '视频压缩', icon: '📦' },
     ],

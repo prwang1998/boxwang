@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Sidebar from '@/components/Sidebar';
 import FileUpload from '@/components/FileUpload';
 import FilePreview from '@/components/FilePreview';
@@ -28,10 +28,17 @@ import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
 import { isDocxFile, isPdfFile, downloadBlob } from '@/lib/file-utils';
 import { getRecommendPlaylists, getPlaylistDetail, searchPlaylists } from '@/lib/musicbox';
 import { FileInfo, FileStatus, ConvertState, Song, PlayUrl, Playlist } from '@/types';
+import MovieSearch from '@/components/MovieSearch';
+import MovieGrid from '@/components/MovieGrid';
+import MovieDetailComponent from '@/components/MovieDetail';
+import MovieSkeleton from '@/components/MovieSkeleton';
+import MovieSourceSwitcher, { SourceInfo } from '@/components/MovieSourceSwitcher';
+import { Movie, MovieDetail, VideoSource, MovieCategory } from '@/types/movie';
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
+  const isLight = theme === 'light';
   const [activeItem, setActiveItem] = useState('format-convert');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -100,6 +107,52 @@ export default function Home() {
   const [playlistLoading, setPlaylistLoading] = useState(false);
   const [playlistsLoaded, setPlaylistsLoaded] = useState(false);
 
+  // Movie state
+  const [movieSearchResults, setMovieSearchResults] = useState<Movie[]>([]);
+  const [movieSearchLoading, setMovieSearchLoading] = useState(false);
+  const [movieShowSearch, setMovieShowSearch] = useState(false);
+  const [recommendMovies, setRecommendMovies] = useState<Movie[]>([]);
+  const [movieLoading, setMovieLoading] = useState(false);
+  const [moviesLoaded, setMoviesLoaded] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<MovieDetail | null>(null);
+  const [movieVideoSources, setMovieVideoSources] = useState<VideoSource[]>([]);
+  const [movieDetailLoading, setMovieDetailLoading] = useState(false);
+  const [movieCategory, setMovieCategory] = useState<MovieCategory>('popular');
+  const [moviePage, setMoviePage] = useState(1);
+  const [movieTotalPages, setMovieTotalPages] = useState(1);
+  const [movieSource, setMovieSource] = useState<string>('wujin');
+  const [movieSources, setMovieSources] = useState<SourceInfo[]>([]);
+  const [movieSourceLoading, setMovieSourceLoading] = useState(false);
+  const [movieSourceLabel, setMovieSourceLabel] = useState('');
+  const [hiddenSourceRevealed, setHiddenSourceRevealed] = useState(false);
+  const aboutClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const aboutClickCountRef = useRef(0);
+
+  // 从 localStorage 恢复隐藏片源状态
+  useEffect(() => {
+    try {
+      const revealed = localStorage.getItem('movie_hidden_source_revealed');
+      if (revealed === 'true') setHiddenSourceRevealed(true);
+    } catch {}
+  }, []);
+
+  // 侧边栏点击（带关于彩蛋）
+  const handleSidebarItemClick = (id: string) => {
+    setActiveItem(id);
+    if (id === 'about') {
+      aboutClickCountRef.current += 1;
+      if (aboutClickCountRef.current >= 10) {
+        setHiddenSourceRevealed(true);
+        try { localStorage.setItem('movie_hidden_source_revealed', 'true'); } catch {}
+        toast('🎬 已解锁隐藏片源！', 'success');
+        aboutClickCountRef.current = 0;
+      }
+      // 2秒内无点击重置计数
+      if (aboutClickTimerRef.current) clearTimeout(aboutClickTimerRef.current);
+      aboutClickTimerRef.current = setTimeout(() => { aboutClickCountRef.current = 0; }, 2000);
+    }
+  };
+
   // Load recommend playlists when entering music page
   useEffect(() => {
     if (activeItem === 'music-listen' && !playlistsLoaded) {
@@ -118,6 +171,121 @@ export default function Home() {
     } finally {
       setPlaylistLoading(false);
     }
+  };
+
+  // Load movie sources on mount
+  useEffect(() => {
+    if (movieSources.length === 0) {
+      loadMovieSources();
+    }
+  }, []);
+
+  const loadMovieSources = async () => {
+    try {
+      const response = await fetch('/api/movie/sources');
+      const data = await response.json();
+      if (response.ok && data.sources) {
+        setMovieSources(data.sources);
+      }
+    } catch (error) {
+      console.error('Failed to load movie sources:', error);
+    }
+  };
+
+  // Load recommend movies when entering movie page
+  useEffect(() => {
+    if (activeItem === 'movie-watch' && !moviesLoaded) {
+      loadRecommendMovies();
+    }
+  }, [activeItem, moviesLoaded]);
+
+  const loadRecommendMovies = async (category: MovieCategory = 'popular', page: number = 1, source?: string) => {
+    setMovieLoading(true);
+    const src = source || movieSource;
+    try {
+      const response = await fetch(`/api/movie/recommend?category=${category}&page=${page}&source=${src}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '获取推荐电影失败');
+      if (page === 1) {
+        setRecommendMovies(data.movies || []);
+      } else {
+        setRecommendMovies(prev => [...prev, ...(data.movies || [])]);
+      }
+      setMovieTotalPages(data.totalPages || 1);
+      setMoviePage(page);
+      setMoviesLoaded(true);
+      setMovieCategory(category);
+      if (data.sourceLabel) setMovieSourceLabel(data.sourceLabel);
+    } catch (error: any) {
+      toast(error.message || '获取推荐电影失败', 'error');
+    } finally {
+      setMovieLoading(false);
+    }
+  };
+
+  const handleMovieSearch = async (keyword: string) => {
+    setMovieSearchLoading(true);
+    setSelectedMovie(null);
+    try {
+      const response = await fetch(`/api/movie/search?keyword=${encodeURIComponent(keyword)}&source=${movieSource}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '搜索失败');
+      setMovieSearchResults(data.movies || []);
+      if (data.sourceLabel) setMovieSourceLabel(data.sourceLabel);
+    } catch (error: any) {
+      toast(error.message || '搜索失败', 'error');
+    } finally {
+      setMovieSearchLoading(false);
+    }
+  };
+
+  const handleMovieClick = async (movie: Movie) => {
+    setMovieDetailLoading(true);
+    setMovieShowSearch(false);
+    try {
+      const detailResponse = await fetch(`/api/movie/detail?id=${movie.id}&source=${movieSource}`);
+      const detailData = await detailResponse.json();
+      if (!detailResponse.ok) throw new Error(detailData.error || '获取电影详情失败');
+      setSelectedMovie(detailData);
+      setMovieVideoSources(detailData.videoSources || []);
+      if (detailData.sourceLabel) setMovieSourceLabel(detailData.sourceLabel);
+    } catch (error: any) {
+      toast(error.message || '获取电影详情失败', 'error');
+    } finally {
+      setMovieDetailLoading(false);
+    }
+  };
+
+  const handleMovieBack = () => {
+    setSelectedMovie(null);
+    setMovieVideoSources([]);
+  };
+
+  const handleMovieBackFromSearch = () => {
+    setMovieShowSearch(false);
+    setMovieSearchResults([]);
+    setSelectedMovie(null);
+  };
+
+  const handleLoadMoreMovies = () => {
+    if (moviePage < movieTotalPages) {
+      loadRecommendMovies(movieCategory, moviePage + 1);
+    }
+  };
+
+  const handleMovieCategoryChange = (category: MovieCategory) => {
+    setMoviesLoaded(false);
+    setRecommendMovies([]);
+    loadRecommendMovies(category, 1, movieSource);
+  };
+
+  // 切换片源
+  const handleMovieSourceChange = (sourceName: string) => {
+    setMovieSource(sourceName);
+    setSelectedMovie(null);
+    setMovieShowSearch(false);
+    setMovieSearchResults([]);
+    loadRecommendMovies(movieCategory, 1, sourceName);
   };
 
   const handleFileSelect = async (file: File) => {
@@ -307,6 +475,198 @@ export default function Home() {
 
   const renderContent = () => {
     switch (activeItem) {
+      case 'movie-watch':
+        return (
+          <div className="space-y-8 animate-fade-in">
+            {/* Movie Header */}
+            <div className="relative">
+              <span className="absolute right-0 top-0 text-[120px] leading-none font-display font-bold select-none pointer-events-none opacity-[0.03] translate-y-[-20px]">🎬</span>
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pt-6 pb-2">
+                <div>
+                  <span className="eyebrow">多源聚合</span>
+                  <h2 className="text-4xl sm:text-5xl font-display font-bold leading-tight tracking-[-0.03em] italic mt-2" style={{ color: isLight ? '#2c1f14' : '#f0e6d6' }}>
+                    <CharReveal text="全网电影免费看" stagger={50} delay={100} />
+                  </h2>
+                  <p className="text-sm mt-3 max-w-xs" style={{ color: isLight ? '#7a6248' : 'rgba(210,180,140,0.6)' }}>多源聚合，稳定播放，支持多清晰度切换</p>
+                </div>
+                <div className="flex items-center gap-2 pb-1">
+                  {/* 片源切换器 */}
+                  {movieSources.length > 0 && (
+                    <MovieSourceSwitcher
+                      sources={movieSources.filter(s => hiddenSourceRevealed || s.name !== 'modu')}
+                      currentSource={movieSource}
+                      onSourceChange={handleMovieSourceChange}
+                      loading={movieLoading}
+                    />
+                  )}
+                  {!movieShowSearch && !selectedMovie && (
+                    <button
+                      onClick={() => setMovieShowSearch(true)}
+                      className="group px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]"
+                      style={{
+                        background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                        color: '#0c0907',
+                        boxShadow: '0 4px 20px rgba(232,168,73,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
+                      }}
+                    >
+                      搜索电影
+                      <span className="w-6 h-6 rounded-full bg-black/10 flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-110">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Search View */}
+            {movieShowSearch && (
+              <div className="space-y-5 animate-fade-in">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleMovieBackFromSearch}
+                    className="text-sm font-medium transition-colors flex items-center gap-1.5"
+                    style={{ color: isLight ? '#8b6914' : '#e8a849' }}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    返回
+                  </button>
+                </div>
+                <MovieSearch onSearch={handleMovieSearch} loading={movieSearchLoading} />
+
+                {movieSearchLoading && (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary/30 border-t-primary"></div>
+                    <p className="mt-3 text-sm" style={{ color: isLight ? '#7a6248' : 'rgba(210,180,140,0.6)' }}>搜索中...</p>
+                  </div>
+                )}
+
+                {!movieSearchLoading && movieSearchResults.length > 0 && (
+                  <MovieGrid movies={movieSearchResults} onMovieClick={handleMovieClick} title="搜索结果" />
+                )}
+
+                {!movieSearchLoading && movieSearchResults.length === 0 && movieShowSearch && (
+                  <div className="text-center py-16" style={{ color: isLight ? '#7a6248' : 'rgba(210,180,140,0.6)' }}>
+                    <div className="text-4xl mb-3 opacity-30">🔍</div>
+                    <p className="text-sm">输入电影名开始搜索</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Movie Detail View */}
+            {selectedMovie && !movieShowSearch && (
+              <MovieDetailComponent
+                movie={selectedMovie}
+                videoSources={movieVideoSources}
+                onBack={handleMovieBack}
+                onMovieClick={handleMovieClick}
+                sourceLabel={movieSourceLabel}
+              />
+            )}
+
+            {/* Movie Detail Loading */}
+            {movieDetailLoading && (
+              <div className="text-center py-16">
+                <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-primary/30 border-t-primary"></div>
+                <p className="mt-4 text-sm" style={{ color: isLight ? '#7a6248' : 'rgba(210,180,140,0.6)' }}>加载电影详情中...</p>
+              </div>
+            )}
+
+            {/* Home View - Recommend Movies */}
+            {!movieShowSearch && !selectedMovie && !movieDetailLoading && (
+              <>
+                {/* 当前片源显示 */}
+                {movieSourceLabel && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] px-2.5 py-1 rounded-full font-medium" style={{
+                      background: isLight ? 'rgba(74,222,128,0.1)' : 'rgba(74,222,128,0.08)',
+                      color: isLight ? '#16a34a' : '#4ade80',
+                      border: isLight ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(74,222,128,0.15)',
+                    }}>
+                      <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style={{ background: '#4ade80' }} />
+                      数据来源: {movieSourceLabel}
+                    </span>
+                  </div>
+                )}
+
+                {/* Category Tabs */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-3" style={{ color: isLight ? '#7a6248' : 'rgba(210,180,140,0.5)' }}>分类浏览</h3>
+                  <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    {[
+                      { key: 'popular' as MovieCategory, label: '🔥 热门', icon: '🔥' },
+                      { key: 'top_rated' as MovieCategory, label: '⭐ 高分', icon: '⭐' },
+                      { key: 'now_playing' as MovieCategory, label: '😂 喜剧', icon: '😂' },
+                      { key: 'upcoming' as MovieCategory, label: '🚀 科幻', icon: '🚀' },
+                      { key: 'trending' as MovieCategory, label: '💕 爱情', icon: '💕' },
+                    ].map(cat => (
+                      <button
+                        key={cat.key}
+                        onClick={() => handleMovieCategoryChange(cat.key)}
+                        className="px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-300 hover:scale-[1.05] active:scale-[0.95]"
+                        style={movieCategory === cat.key ? {
+                          background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                          color: '#0c0907',
+                          boxShadow: '0 4px 15px rgba(232,168,73,0.3)',
+                        } : {
+                          background: isLight ? 'rgba(180,150,100,0.1)' : 'rgba(255,255,255,0.06)',
+                          color: isLight ? '#5a4a3a' : 'rgba(210,180,140,0.7)',
+                          border: isLight ? '1px solid rgba(180,150,100,0.15)' : '1px solid rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {movieLoading && (
+                  <MovieSkeleton count={12} />
+                )}
+
+                {!movieLoading && recommendMovies.length > 0 && (
+                  <MovieGrid movies={recommendMovies} onMovieClick={handleMovieClick} />
+                )}
+
+                {!movieLoading && recommendMovies.length === 0 && (
+                  <div className="text-center py-16" style={{ color: isLight ? '#7a6248' : 'rgba(210,180,140,0.6)' }}>
+                    <div className="text-4xl mb-3 opacity-30">🎬</div>
+                    <p className="text-sm">暂无推荐电影</p>
+                    <button
+                      onClick={() => loadRecommendMovies()}
+                      className="mt-4 text-sm font-medium transition-colors"
+                      style={{ color: isLight ? '#8b6914' : '#e8a849' }}
+                    >
+                      重新加载
+                    </button>
+                  </div>
+                )}
+
+                {/* Load More */}
+                {!movieLoading && recommendMovies.length > 0 && moviePage < movieTotalPages && (
+                  <div className="text-center pt-4 pb-8">
+                    <button
+                      onClick={handleLoadMoreMovies}
+                      className="px-8 py-3 rounded-full text-sm font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                      style={{
+                        background: isLight ? 'rgba(139,105,20,0.08)' : 'rgba(255,255,255,0.04)',
+                        border: isLight ? '1px solid rgba(139,105,20,0.15)' : '1px solid rgba(255,255,255,0.06)',
+                        color: isLight ? '#8b6914' : '#e8a849',
+                      }}
+                    >
+                      {movieLoading ? '加载中...' : '加载更多'}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        );
       case 'image-download':
         return <ImageDownload />;
       case 'music-listen':
@@ -613,7 +973,7 @@ export default function Home() {
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/[0.02] rounded-full blur-[100px]" />
       </div>
 
-      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
+      <Sidebar activeItem={activeItem} onItemClick={handleSidebarItemClick} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
       <main className={`flex-1 p-4 md:p-8 pt-14 md:pt-8 pb-36 relative z-10 overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'}`}>
         {/* Mobile hamburger button */}
         <button
