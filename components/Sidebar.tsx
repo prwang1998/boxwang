@@ -58,6 +58,7 @@ const menuItems: MenuItem[] = [
     icon: '📚',
     children: [
       { id: 'novel-reader', label: '免费看小说', icon: '📖' },
+      { id: 'tech-blog', label: '免费学技术', icon: '💡' },
     ],
   },
   {

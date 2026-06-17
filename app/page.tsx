@@ -17,6 +17,7 @@ import MusicBoxEmbed from '@/components/MusicBoxEmbed';
 import ParseChannelConfig from '@/components/ParseChannelConfig';
 import ApiTester from '@/components/ApiTester';
 import NovelReader from '@/components/NovelReader';
+import TechBlogReader from '@/components/TechBlogReader';
 import AboutPage from '@/components/AboutPage';
 import { useTheme } from '@/app/theme-context';
 import { useToast } from '@/app/toast-context';
@@ -846,6 +847,8 @@ export default function Home() {
         );
       case 'novel-reader':
         return <NovelReader onSidebarCollapse={setSidebarCollapsed} sidebarCollapsed={sidebarCollapsed} playlist={playQueue} currentSong={currentSong} />;
+      case 'tech-blog':
+        return <TechBlogReader />;
       case 'parse-channel-config':
         return (
           <div className="space-y-6 animate-fade-in">
