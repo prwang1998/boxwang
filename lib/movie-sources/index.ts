@@ -6,4 +6,6 @@ export { WujinSource } from './wujin';
 export { GuangsuSource } from './guangsu';
 export { ModuSource } from './modu';
 export { SoniSource } from './soni';
+export { FfzySource } from './ffzy';
+export { IkunSource } from './ikun';
 export { movieSourceManager } from './manager';

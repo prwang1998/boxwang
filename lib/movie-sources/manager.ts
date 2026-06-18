@@ -6,13 +6,17 @@ import { WujinSource } from './wujin';
 import { GuangsuSource } from './guangsu';
 import { ModuSource } from './modu';
 import { SoniSource } from './soni';
+import { FfzySource } from './ffzy';
+import { IkunSource } from './ikun';
 
 class MovieSourceManager {
   private sources: Map<string, MovieSource> = new Map();
-  private defaultSourceName = 'wujin';
+  private defaultSourceName = 'ffzy';
 
   constructor() {
-    // 注册所有片源
+    // 注册中国大陆可访问片源（优先）
+    this.register(new FfzySource());
+    this.register(new IkunSource());
     this.register(new WujinSource());
     this.register(new GuangsuSource());
     this.register(new ModuSource());
