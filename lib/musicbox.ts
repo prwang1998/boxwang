@@ -24,12 +24,12 @@ export async function searchMusicBox(keyword: string, page: number = 1): Promise
     }
 
     return data.map((item: any, index: number) => ({
-      id: `musicbox_${item.id || index}`,
+      id: `netease_${item.id || index}`,
       name: item.name || '',
       artist: item.artist || '',
       album: item.album || '',
       duration: parseInt(item.duration || '0'),
-      source: 'custom' as const,
+      source: 'netease' as const,
       cover: item.pic || '',
     }));
   } catch {
@@ -131,12 +131,12 @@ export async function getPlaylistDetail(playlistId: string): Promise<PlaylistDet
       name: data.name || '',
       cover: data.coverImgUrl || data.cover || '',
       tracks: (data.tracks || []).map((track: any) => ({
-        id: `musicbox_${track.id}`,
+        id: `netease_${track.id}`,
         name: track.name || '',
         artist: track.ar?.map((a: any) => a.name).join(', ') || track.artist || '',
         album: track.al?.name || track.album || '',
         duration: Math.floor((track.dt || track.duration || 0) / 1000),
-        source: 'custom' as const,
+        source: 'netease' as const,
         cover: track.al?.picUrl || track.pic || '',
       })),
     };

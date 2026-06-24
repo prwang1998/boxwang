@@ -466,6 +466,18 @@ interface Chapter {
   url: string;
 }
 
+interface BookshelfBook {
+  bookUrl: string;
+  title: string;
+  author: string;
+  cover: string;
+  source: string;
+  lastReadChapter: string;
+  lastReadUrl: string;
+  lastReadTime: number;
+  addedTime: number;
+}
+
 interface NovelReaderProps {
   onSidebarCollapse?: (collapsed: boolean) => void;
   sidebarCollapsed?: boolean;
@@ -593,6 +605,73 @@ export default function NovelReader({ onSidebarCollapse, sidebarCollapsed = fals
   const [newSource, setNewSource] = useState({ name: '', url: '', searchPath: '/search.php?q=' });
   const [editingSource, setEditingSource] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // 书架状态
+  const [bookshelf, setBookshelf] = useState<BookshelfBook[]>([]);
+  const [showBookshelf, setShowBookshelf] = useState(false);
+
+  // 从localStorage加载书架
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('novel_bookshelf');
+      if (saved) {
+        setBookshelf(JSON.parse(saved));
+      }
+    } catch {}
+  }, []);
+
+  // 保存书架到localStorage
+  const saveBookshelf = (shelf: BookshelfBook[]) => {
+    setBookshelf(shelf);
+    try {
+      localStorage.setItem('novel_bookshelf', JSON.stringify(shelf));
+    } catch {}
+  };
+
+  // 添加到书架
+  const addToBookshelf = (book: Book, chapter?: Chapter) => {
+    const existing = bookshelf.find(b => b.bookUrl === book.url);
+    if (existing) return; // 已在书架中
+
+    const item: BookshelfBook = {
+      bookUrl: book.url,
+      title: book.name,
+      author: book.author,
+      cover: book.cover,
+      source: book.source,
+      lastReadChapter: chapter?.title || '',
+      lastReadUrl: chapter?.url || '',
+      lastReadTime: Date.now(),
+      addedTime: Date.now(),
+    };
+    saveBookshelf([item, ...bookshelf]);
+  };
+
+  // 从书架移除
+  const removeFromBookshelf = (bookUrl: string) => {
+    saveBookshelf(bookshelf.filter(b => b.bookUrl !== bookUrl));
+  };
+
+  // 检查是否在书架中
+  const isInBookshelf = (bookUrl: string) => {
+    return bookshelf.some(b => b.bookUrl === bookUrl);
+  };
+
+  // 更新阅读进度
+  const updateReadingProgress = (bookUrl: string, chapter: Chapter) => {
+    const updated = bookshelf.map(b => {
+      if (b.bookUrl === bookUrl) {
+        return {
+          ...b,
+          lastReadChapter: chapter.title,
+          lastReadUrl: chapter.url,
+          lastReadTime: Date.now(),
+        };
+      }
+      return b;
+    });
+    saveBookshelf(updated);
+  };
 
   // 字体颜色选项
   const FONT_COLORS = {
@@ -755,6 +834,11 @@ export default function NovelReader({ onSidebarCollapse, sidebarCollapsed = fals
       const data = await res.json();
       setChapterContent(data.content || '暂无内容');
       contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // 保存阅读进度到书架
+      if (isInBookshelf(selectedBook.url)) {
+        updateReadingProgress(selectedBook.url, chapter);
+      }
     } catch (e) {
       console.error('获取章节内容失败:', e);
       setChapterContent('获取内容失败，请重试');
@@ -1132,13 +1216,35 @@ export default function NovelReader({ onSidebarCollapse, sidebarCollapsed = fals
         </div>
       </div>
 
-      {/* 推荐小说 */}
+      {/* 推荐小说 / 书架 */}
       {!hasSearched && !selectedBook && !showSourceManager && (
         <div>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-1 h-5 rounded-full bg-gradient-to-b from-amber-700 to-red-800"></div>
-              <h3 className="font-bold tracking-wide" style={{ color: theme.text, fontFamily: 'serif' }}>推荐阅读</h3>
+              {/* 书架/推荐切换 */}
+              <div className="flex items-center gap-1 rounded-lg p-0.5" style={{ background: theme.btnSecondary }}>
+                <button
+                  onClick={() => setShowBookshelf(false)}
+                  className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+                  style={{
+                    background: !showBookshelf ? theme.btnPrimary : 'transparent',
+                    color: !showBookshelf ? theme.btnPrimaryText : theme.textMuted,
+                  }}
+                >
+                  推荐
+                </button>
+                <button
+                  onClick={() => setShowBookshelf(true)}
+                  className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+                  style={{
+                    background: showBookshelf ? theme.btnPrimary : 'transparent',
+                    color: showBookshelf ? theme.btnPrimaryText : theme.textMuted,
+                  }}
+                >
+                  书架 {bookshelf.length > 0 && `(${bookshelf.length})`}
+                </button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -1162,11 +1268,77 @@ export default function NovelReader({ onSidebarCollapse, sidebarCollapsed = fals
               </div>
             </div>
           </div>
-          {recommendLoading ? <Skeleton /> : recommendBooks.length > 0 ? (
-            <div className={columnMode === 'single' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3' : 'grid grid-cols-1 md:grid-cols-2 gap-3'}>
-              {recommendBooks.map((book, i) => <BookCard key={book.id} book={book} onClick={() => handleSelectBook(book)} index={i} mode={columnMode} />)}
-            </div>
-          ) : <p className="text-center py-8 text-sm" style={{ color: theme.textMuted }}>暂无推荐</p>}
+          {/* 书架内容 */}
+          {showBookshelf ? (
+            bookshelf.length > 0 ? (
+              <div className="space-y-3">
+                {bookshelf.map((item) => (
+                  <div
+                    key={item.bookUrl}
+                    className="group relative flex gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+                    style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}
+                    onClick={() => {
+                      // 从书架打开书籍
+                      const book: Book = {
+                        id: item.bookUrl,
+                        name: item.title,
+                        author: item.author,
+                        cover: item.cover,
+                        description: '',
+                        lastChapter: '',
+                        source: item.source,
+                        url: item.bookUrl,
+                      };
+                      handleSelectBook(book);
+                    }}
+                  >
+                    <div className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full bg-gradient-to-b from-amber-500 to-amber-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    {item.cover ? (
+                      <img src={item.cover} alt={item.title} className="w-16 h-[88px] object-cover rounded flex-shrink-0 shadow-md" style={{ border: themeKey === 'light' ? '2px solid rgba(180,150,100,0.15)' : '2px solid rgba(255,255,255,0.1)' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    ) : (
+                      <CoverPlaceholder name={item.title} />
+                    )}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                      <div>
+                        <h3 className="font-semibold text-[15px] truncate group-hover:text-amber-300 transition-colors" style={{ color: theme.cardText }}>{item.title}</h3>
+                        {item.author && <p className="text-xs mt-1 flex items-center gap-1" style={{ color: theme.cardTextSecondary }}><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>{item.author}</p>}
+                      </div>
+                      {item.lastReadChapter && (
+                        <p className="text-xs mt-1.5 truncate flex items-center gap-1" style={{ color: theme.cardAccent }}>
+                          <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                          读到：{item.lastReadChapter}
+                        </p>
+                      )}
+                    </div>
+                    {/* 删除按钮 */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFromBookshelf(item.bookUrl);
+                      }}
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ background: 'rgba(255,0,0,0.1)', color: '#ff6b6b' }}
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-4xl mb-3 opacity-30">📚</div>
+                <p className="text-sm" style={{ color: theme.textSecondary }}>书架空空如也</p>
+                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>在书籍详情页点击"加入书架"收藏喜欢的小说</p>
+              </div>
+            )
+          ) : (
+            /* 推荐内容 */
+            recommendLoading ? <Skeleton /> : recommendBooks.length > 0 ? (
+              <div className={columnMode === 'single' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3' : 'grid grid-cols-1 md:grid-cols-2 gap-3'}>
+                {recommendBooks.map((book, i) => <BookCard key={book.id} book={book} onClick={() => handleSelectBook(book)} index={i} mode={columnMode} />)}
+              </div>
+            ) : <p className="text-center py-8 text-sm" style={{ color: theme.textMuted }}>暂无推荐</p>
+          )}
         </div>
       )}
 
@@ -1281,10 +1453,20 @@ export default function NovelReader({ onSidebarCollapse, sidebarCollapsed = fals
       {/* 搜索结果 */}
       {!selectedBook && hasSearched && books.length > 0 && (
         <div>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-amber-700 to-red-800"></div>
-            <h3 className="font-bold tracking-wide" style={{ color: theme.text, fontFamily: 'serif' }}>搜索结果</h3>
-            <span className="text-xs ml-1" style={{ color: theme.textMuted }}>({books.length})</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setHasSearched(false); setBooks([]); setKeyword(''); }}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors"
+                style={{ color: theme.textMuted, background: theme.btnSecondary }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                返回
+              </button>
+              <div className="w-1 h-5 rounded-full bg-gradient-to-b from-amber-700 to-red-800"></div>
+              <h3 className="font-bold tracking-wide" style={{ color: theme.text, fontFamily: 'serif' }}>搜索结果</h3>
+              <span className="text-xs ml-1" style={{ color: theme.textMuted }}>({books.length})</span>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {books.map((book, i) => <BookCard key={book.id} book={book} onClick={() => handleSelectBook(book)} index={i} />)}
@@ -1310,6 +1492,24 @@ export default function NovelReader({ onSidebarCollapse, sidebarCollapsed = fals
                 <div className="flex items-center gap-2 mt-3">
                   <span className="px-2.5 py-1 rounded-md text-xs font-medium text-amber-300/80" style={{ background: 'rgba(180,140,50,0.15)' }}>{chapters.length} 章</span>
                   {selectedBook.source && <span className="px-2.5 py-1 rounded-md text-xs text-amber-200/40" style={{ background: 'rgba(255,255,255,0.05)' }}>{selectedBook.source}</span>}
+                  {/* 加入书架按钮 */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isInBookshelf(selectedBook.url)) {
+                        removeFromBookshelf(selectedBook.url);
+                      } else {
+                        addToBookshelf(selectedBook);
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded-md text-xs font-medium transition-all"
+                    style={{
+                      background: isInBookshelf(selectedBook.url) ? 'rgba(255,107,107,0.2)' : 'rgba(180,140,50,0.15)',
+                      color: isInBookshelf(selectedBook.url) ? '#ff6b6b' : '#f0c878',
+                    }}
+                  >
+                    {isInBookshelf(selectedBook.url) ? '取消收藏' : '加入书架'}
+                  </button>
                 </div>
               </div>
             </div>

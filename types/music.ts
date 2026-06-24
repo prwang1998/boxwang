@@ -12,7 +12,26 @@ export interface PlayUrl {
   url: string;
   br: number;
   size: number;
+  type?: string;
+  level?: string;
 }
+
+export type QualityLevel = 'standard' | 'exhigh' | 'lossless' | 'hires' | 'sky' | 'jyeffect' | 'jymaster' | 'dolby';
+
+export interface QualityOption {
+  value: QualityLevel;
+  label: string;
+  description: string;
+}
+
+export const QUALITY_OPTIONS: QualityOption[] = [
+  { value: 'standard', label: '标准', description: '128kbps' },
+  { value: 'exhigh', label: 'HQ', description: '320kbps' },
+  { value: 'lossless', label: 'SQ', description: '无损 FLAC' },
+  { value: 'hires', label: 'Hi-Res', description: '高解析度' },
+  { value: 'dolby', label: '杜比', description: '杜比全景声' },
+  { value: 'jymaster', label: '母带', description: 'Master 原版' },
+];
 
 export interface Lyric {
   lyric: string;

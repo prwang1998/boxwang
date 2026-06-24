@@ -28,6 +28,7 @@ import { previewPdf, convertPdfToDocx } from '@/lib/pdf-to-docx';
 import { isDocxFile, isPdfFile, downloadBlob } from '@/lib/file-utils';
 import { getRecommendPlaylists, getPlaylistDetail, searchPlaylists } from '@/lib/musicbox';
 import { FileInfo, FileStatus, ConvertState, Song, PlayUrl, Playlist } from '@/types';
+import { QualityLevel } from '@/types/music';
 import MovieSearch from '@/components/MovieSearch';
 import MovieGrid from '@/components/MovieGrid';
 import MovieDetailComponent from '@/components/MovieDetail';
@@ -65,6 +66,7 @@ export default function Home() {
   const [playMode, setPlayMode] = useState<'sequential' | 'shuffle' | 'loop' | 'single'>('sequential');
   const [showPlayerPage, setShowPlayerPage] = useState(false);
   const [playerState, setPlayerState] = useState<MusicPlayerState>({ isPlaying: false, currentTime: 0, duration: 0, togglePlay: () => {}, seek: () => {} });
+  const [currentQuality, setCurrentQuality] = useState<QualityLevel>('exhigh');
 
   const handleAddPlayNext = (song: Song) => {
     setPlayQueue(prev => {
@@ -382,9 +384,18 @@ export default function Home() {
     }
   };
 
-  const fetchPlayUrl = async (song: Song): Promise<PlayUrl | null> => {
+  const fetchPlayUrl = async (song: Song, quality?: QualityLevel): Promise<PlayUrl | null> => {
     try {
-      const response = await fetch(`/api/music/url?id=${song.id}&source=${song.source}`);
+      const musicU = localStorage.getItem('netease_music_u') || '';
+      const params = new URLSearchParams({
+        id: song.id,
+        source: song.source,
+        quality: quality || currentQuality,
+      });
+      if (musicU) {
+        params.set('musicU', musicU);
+      }
+      const response = await fetch(`/api/music/url?${params.toString()}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || '获取播放链接失败');
       return data;
@@ -402,6 +413,16 @@ export default function Home() {
     const url = await fetchPlayUrl(song);
     if (url) setPlayUrl(url);
     setMusicLoading(false);
+  };
+
+  const handleQualityChange = async (quality: QualityLevel) => {
+    setCurrentQuality(quality);
+    if (currentSong) {
+      setMusicLoading(true);
+      const url = await fetchPlayUrl(currentSong, quality);
+      if (url) setPlayUrl(url);
+      setMusicLoading(false);
+    }
   };
 
   // 封面取色 → 环境光
@@ -1023,6 +1044,8 @@ export default function Home() {
           onPlayModeChange={setPlayMode}
           onOpenPlayerPage={handleOpenPlayerPage}
           onStateChange={setPlayerState}
+          currentQuality={currentQuality}
+          onQualityChange={handleQualityChange}
         />
       )}
     </div>

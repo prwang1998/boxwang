@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Song, PlayUrl } from '@/types/music';
+import { Song, PlayUrl, QualityLevel, QUALITY_OPTIONS } from '@/types/music';
 import { useTheme } from '@/app/theme-context';
 
 type PlayMode = 'sequential' | 'shuffle' | 'loop' | 'single';
@@ -25,6 +25,8 @@ interface MusicPlayerProps {
   onPlayModeChange: (mode: PlayMode) => void;
   onOpenPlayerPage?: () => void;
   onStateChange?: (state: MusicPlayerState) => void;
+  currentQuality?: QualityLevel;
+  onQualityChange?: (quality: QualityLevel) => void;
 }
 
 const MODE_LIST: PlayMode[] = ['sequential', 'shuffle', 'loop', 'single'];
@@ -65,13 +67,14 @@ const MODE_INFO: Record<PlayMode, { label: string; icon: JSX.Element }> = {
   },
 };
 
-export default function MusicPlayer({ song, playUrl, loading, playlist, currentIndex, onPlayIndex, playMode, onPlayModeChange, onOpenPlayerPage, onStateChange }: MusicPlayerProps) {
+export default function MusicPlayer({ song, playUrl, loading, playlist, currentIndex, onPlayIndex, playMode, onPlayModeChange, onOpenPlayerPage, onStateChange, currentQuality = 'exhigh', onQualityChange }: MusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.8);
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
   const { theme } = useTheme();
   const isLight = theme === 'light';
 
@@ -330,6 +333,79 @@ export default function MusicPlayer({ song, playUrl, loading, playlist, currentI
                 <button onClick={handleNext} className="w-8 h-8 md:w-9 md:h-9 rounded-lg text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04] flex items-center justify-center transition-all duration-200">
                   <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" /></svg>
                 </button>
+
+                {/* Quality button — desktop only */}
+                {onQualityChange && (
+                  <div className="relative hidden md:block">
+                    <button
+                      onClick={() => setShowQualityMenu(!showQualityMenu)}
+                      title={playUrl?.level ? `当前播放: ${QUALITY_OPTIONS.find(q => q.value === playUrl.level)?.label || playUrl.level}` : '音质选择'}
+                      className="h-7 px-2 rounded-md flex items-center justify-center transition-all duration-200 text-[11px] font-medium border"
+                      style={{
+                        background: isLight ? 'rgba(139,105,20,0.08)' : 'rgba(232,168,73,0.1)',
+                        color: isLight ? '#8b6914' : '#e8a849',
+                        borderColor: isLight ? 'rgba(139,105,20,0.2)' : 'rgba(232,168,73,0.2)',
+                      }}
+                    >
+                      {playUrl?.level
+                        ? (QUALITY_OPTIONS.find(q => q.value === playUrl.level)?.label || playUrl.level)
+                        : (QUALITY_OPTIONS.find(q => q.value === currentQuality)?.label || 'HQ')
+                      }
+                    </button>
+
+                    {/* Quality menu */}
+                    {showQualityMenu && (
+                      <div
+                        className="absolute bottom-full right-0 mb-2 w-44 backdrop-blur-xl rounded-xl shadow-2xl overflow-hidden animate-scale-in"
+                        style={{
+                          background: isLight ? 'rgba(255,255,255,0.95)' : 'rgba(26,26,26,0.95)',
+                          border: isLight ? '1px solid rgba(180,150,100,0.15)' : '1px solid rgba(255,255,255,0.06)',
+                        }}
+                      >
+                        <div className="p-1.5">
+                          {QUALITY_OPTIONS.map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => {
+                                onQualityChange(option.value);
+                                setShowQualityMenu(false);
+                              }}
+                              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-all duration-150"
+                              style={{
+                                background: currentQuality === option.value
+                                  ? (isLight ? 'rgba(139,105,20,0.1)' : 'rgba(232,168,73,0.15)')
+                                  : 'transparent',
+                                color: currentQuality === option.value
+                                  ? (isLight ? '#8b6914' : '#e8a849')
+                                  : (isLight ? '#6b5e4f' : 'rgba(255,255,255,0.7)'),
+                              }}
+                              onMouseEnter={e => {
+                                if (currentQuality !== option.value) {
+                                  e.currentTarget.style.background = isLight ? 'rgba(180,150,100,0.06)' : 'rgba(255,255,255,0.04)';
+                                }
+                              }}
+                              onMouseLeave={e => {
+                                if (currentQuality !== option.value) {
+                                  e.currentTarget.style.background = 'transparent';
+                                }
+                              }}
+                            >
+                              <div>
+                                <span className="text-sm font-medium">{option.label}</span>
+                                <span className="text-[10px] ml-1.5 opacity-60">{option.description}</span>
+                              </div>
+                              {currentQuality === option.value && (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Playlist button — always visible */}
                 <button onClick={() => setShowPlaylist(!showPlaylist)} className={`w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${showPlaylist ? 'bg-primary/15 text-primary' : 'text-obsidian-100 hover:text-obsidian-50 hover:bg-white/[0.04]'}`}>

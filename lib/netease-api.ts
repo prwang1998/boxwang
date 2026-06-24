@@ -1,4 +1,4 @@
-import { Song, PlayUrl, Lyric } from '@/types/music';
+import { Song, PlayUrl, Lyric, QualityLevel } from '@/types/music';
 
 const isServer = typeof window === 'undefined';
 
@@ -50,20 +50,23 @@ export async function searchNeteaseMusic(keyword: string, page: number = 1, limi
   }
 }
 
-export async function getNeteasePlayUrl(songId: string, quality: string = 'standard', musicU?: string): Promise<PlayUrl> {
+export async function getNeteasePlayUrl(songId: string, quality: QualityLevel = 'standard', musicU?: string): Promise<PlayUrl> {
   const id = songId.replace('netease_', '');
 
   try {
     if (isServer) {
       // Server-side: call directly
-      const { getSongUrl } = await import('./netease-server');
+      const { getSongUrl, isValidQuality } = await import('./netease-server');
+      const validQuality = isValidQuality(quality) ? quality : 'standard';
       const userCookies: Record<string, string> = {};
       if (musicU) userCookies.MUSIC_U = musicU;
-      const result = await getSongUrl(parseInt(id), quality as any, userCookies);
+      const result = await getSongUrl(parseInt(id), validQuality, userCookies);
       return {
         url: result.url,
         br: result.br || 128000,
         size: result.size || 0,
+        type: result.type || 'mp3',
+        level: result.level || validQuality,
       };
     }
 
@@ -83,6 +86,8 @@ export async function getNeteasePlayUrl(songId: string, quality: string = 'stand
       url: data.url,
       br: data.br || 128000,
       size: data.size || 0,
+      type: data.type || 'mp3',
+      level: data.level || quality,
     };
   } catch (error: any) {
     throw new Error(error.message || '获取播放链接失败');

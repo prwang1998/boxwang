@@ -167,6 +167,7 @@ export async function getSongUrl(songId: number, quality: QualityLevel = 'standa
     br: songData.br || 128000,
     size: songData.size || 0,
     type: songData.type || 'mp3',
+    level: songData.level || quality,
   };
 }
 

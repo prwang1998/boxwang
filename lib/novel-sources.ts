@@ -21,11 +21,11 @@ export interface NovelSource {
   id: string;
   name: string;
   url: string;
-  searchPath: string; // 搜索路径，如 /search.php?q=
+  searchPath: string;
   enabled: boolean;
 }
 
-// 预置小说源
+// 预置小说源 - 只保留可用的源
 const DEFAULT_SOURCES: NovelSource[] = [
   {
     id: 'biquge5',
@@ -33,20 +33,6 @@ const DEFAULT_SOURCES: NovelSource[] = [
     url: 'https://www.biquge5.com',
     searchPath: '/search.php?q=',
     enabled: true,
-  },
-  {
-    id: 'biquge365',
-    name: '笔趣阁365',
-    url: 'https://www.biquge365.com',
-    searchPath: '/search.php?q=',
-    enabled: false,
-  },
-  {
-    id: 'xbiquge',
-    name: '新笔趣阁',
-    url: 'https://www.xbiquge.so',
-    searchPath: '/search.php?q=',
-    enabled: false,
   },
 ];
 
@@ -57,7 +43,6 @@ export function getDefaultSources(): NovelSource[] {
 const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
 ];
 
 function randomUA() {
@@ -95,22 +80,24 @@ function resolveUrl(href: string, base: string): string {
   try { return new URL(href, base).toString(); } catch { return href; }
 }
 
+// 清理书名（去掉分类前缀）
+function cleanBookName(name: string): string {
+  return name.replace(/^\[[^\]]+\]\s*/, '').trim();
+}
+
 // ==================== 搜索 ====================
 
 export async function searchNovels(keyword: string, sources?: NovelSource[]): Promise<NovelBook[]> {
   const activeSources = sources?.filter(s => s.enabled) || DEFAULT_SOURCES.filter(s => s.enabled);
 
-  // 如果没有启用的源，使用默认源
   if (activeSources.length === 0) {
-    return searchFromSource(keyword, DEFAULT_SOURCES[0]);
+    return searchBiquge5(keyword, DEFAULT_SOURCES[0]);
   }
 
-  // 并行搜索所有启用的源
   const results = await Promise.allSettled(
-    activeSources.map(source => searchFromSource(keyword, source))
+    activeSources.map(source => searchBiquge5(keyword, source))
   );
 
-  // 合并结果
   const allBooks: NovelBook[] = [];
   for (const result of results) {
     if (result.status === 'fulfilled') {
@@ -121,7 +108,8 @@ export async function searchNovels(keyword: string, sources?: NovelSource[]): Pr
   return allBooks.length > 0 ? allBooks : generateFallbackBooks(keyword);
 }
 
-async function searchFromSource(keyword: string, source: NovelSource): Promise<NovelBook[]> {
+// 笔趣阁5搜索
+async function searchBiquge5(keyword: string, source: NovelSource): Promise<NovelBook[]> {
   const url = `${source.url}${source.searchPath}${encodeURIComponent(keyword)}`;
   const html = await safeFetch(url);
   if (!html) return [];
@@ -135,18 +123,18 @@ async function searchFromSource(keyword: string, source: NovelSource): Promise<N
     const href = a.getAttribute('href') || '';
     const text = a.text.trim();
 
-    // 匹配 /{id}/ 格式的书籍链接（如 /0_143/、/77_77406/）
+    // 匹配 /数字_数字/ 格式的书籍链接
     const bookMatch = href.match(/^\/(\d+_\d+)\/$/);
-    if (bookMatch && text && text.length >= 2 && text.length < 50 && !seen.has(bookMatch[1])) {
+    if (bookMatch && text && text.length >= 2 && text.length < 80 && !seen.has(bookMatch[1])) {
       seen.add(bookMatch[1]);
 
-      const cleanName = text.replace(/^\[[^\]]+\]/, '').trim();
+      const cleanName = cleanBookName(text);
 
-      // 向上找到 <dl> 容器，从中提取作者和其他信息
+      // 向上找父容器获取更多信息
       let dl: any = a.parentNode;
       for (let i = 0; i < 5 && dl && dl.tagName !== 'DL'; i++) dl = dl.parentNode;
 
-      // 从 <dd class="book_other">作者：<span>xxx</span></dd> 提取作者
+      // 提取作者
       let author = '';
       if (dl && dl.tagName === 'DL') {
         const dds = dl.querySelectorAll('dd.book_other');
@@ -169,10 +157,7 @@ async function searchFromSource(keyword: string, source: NovelSource): Promise<N
         const dds = dl.querySelectorAll('dd.book_other');
         for (const dd of dds) {
           const ddText = dd.text.trim();
-          if (ddText.includes('更新时间')) continue;
-          if (ddText.includes('状态')) continue;
-          if (ddText.includes('作者')) continue;
-          // 剩余的可能是最新章节
+          if (ddText.includes('更新时间') || ddText.includes('状态') || ddText.includes('作者')) continue;
           const chapterLink = dd.querySelector('a');
           if (chapterLink) {
             lastChapter = chapterLink.text.trim();
@@ -215,18 +200,19 @@ export async function getRecommendNovels(sources?: NovelSource[]): Promise<Novel
     const href = a.getAttribute('href') || '';
     const text = a.text.trim();
 
+    // 匹配 /数字_数字/ 格式的书籍链接
     const bookMatch = href.match(/^\/(\d+_\d+)\/$/);
-    if (bookMatch && text && text.length >= 2 && text.length < 50 && !seen.has(bookMatch[1])) {
+    if (bookMatch && text && text.length >= 2 && text.length < 80 && !seen.has(bookMatch[1])) {
       seen.add(bookMatch[1]);
 
-      const cleanName = text.replace(/^\[[^\]]+\]/, '').trim();
+      const cleanName = cleanBookName(text);
       const parent = a.parentNode;
       const imgEl = parent?.querySelector('img');
       const cover = imgEl?.getAttribute('src') || `${primarySource.url}/images/${bookMatch[1].replace('_', '/')}/${bookMatch[1].split('_')[1]}s.jpg`;
 
       // 获取最新章节
-      const siblingLinks = parent?.querySelectorAll('a') || [];
       let lastChapter = '';
+      const siblingLinks = parent?.querySelectorAll('a') || [];
       for (const sl of siblingLinks) {
         const slHref = sl.getAttribute('href') || '';
         if (slHref.includes(`/${bookMatch[1]}/`) && sl !== a) {
@@ -264,7 +250,7 @@ export async function getBookDetail(bookUrl: string, sourceUrl?: string): Promis
   const root = parse(html);
   const baseUrl = sourceUrl || new URL(bookUrl).origin;
 
-  // 从 URL 提取 bookId
+  // 从 URL 提取 bookId (格式: 数字_数字)
   const bookIdMatch = bookUrl.match(/\/(\d+_\d+)\//);
   const bookId = bookIdMatch?.[1] || '';
 
@@ -283,54 +269,93 @@ export async function getBookDetail(bookUrl: string, sourceUrl?: string): Promis
     cover = `${baseUrl}${cover}`;
   }
 
-  // 提取简介 - 从页面文本中找
+  // 提取简介
   let description = '';
-  const introMatch = html.match(/简介[：:]?\s*([\s\S]*?)(?=<\/div|<div)/i);
-  if (introMatch) {
-    description = introMatch[1].replace(/<[^>]+>/g, '').trim().slice(0, 500);
+  const introEl = root.querySelector('#intro_pc, .intro, #intro_m');
+  if (introEl) {
+    description = introEl.text.trim().slice(0, 500);
   }
-  // 备选：找包含"简介"的文本块
   if (!description) {
-    const textBlocks = html.match(/简介[：:]?[^<]{10,500}/);
-    if (textBlocks) {
-      description = textBlocks[0].replace(/^简介[：:]?/, '').trim();
+    const introMatch = html.match(/简介[：:]?\s*([\s\S]*?)(?=<\/div|<div)/i);
+    if (introMatch) {
+      description = introMatch[1].replace(/<[^>]+>/g, '').trim().slice(0, 500);
     }
   }
 
-  // 提取作者 - 优先从 meta 标签获取
+  // 提取作者
   let author = '';
   const authorMeta = html.match(/<meta\s+property="og:novel:author"\s+content="([^"]+)"/i)
     || html.match(/<meta\s+content="([^"]+)"\s+property="og:novel:author"/i);
   if (authorMeta) {
     author = authorMeta[1].trim();
   }
-  // 备选：从 <li>作者：<a> 获取
   if (!author) {
     const authorLi = html.match(/作者[：:]\s*<a[^>]*>([^<]+)<\/a>/i);
     if (authorLi) author = authorLi[1].trim();
   }
-  // 备选：纯文本
   if (!author) {
     const authorText = html.match(/作\s*者[：:]\s*([^<\n,，]{1,30})/);
     if (authorText) author = authorText[1].trim();
   }
+  // 从book_info区域提取
+  if (!author) {
+    const infoEl = root.querySelector('.info');
+    if (infoEl) {
+      const infoText = infoEl.text;
+      const authorMatch = infoText.match(/作者[：:]\s*([^\n]+)/);
+      if (authorMatch) author = authorMatch[1].trim();
+    }
+  }
 
-  // 提取章节列表
+  // 提取章节列表（处理分页）
   const chapters: NovelChapter[] = [];
   if (bookId) {
-    const chapterPattern = new RegExp(`href="(\\/${bookId.replace('_', '_')}\\/\\d+\\.html)"[^>]*>([^<]+)<\\/a>`, 'gi');
-    let match;
     const chapterSeen = new Set<string>();
-    while ((match = chapterPattern.exec(html)) !== null) {
-      const href = match[1];
-      const title = match[2].trim();
-      if (title && !chapterSeen.has(href)) {
-        chapterSeen.add(href);
-        chapters.push({
-          id: href.match(/\/(\d+)\.html/)?.[1] || '',
-          title,
-          url: `${baseUrl}${href}`,
-        });
+    
+    // 提取总页数
+    const pageMatch = html.match(/index_(\d+)\.html/g);
+    let maxPage = 1;
+    if (pageMatch) {
+      for (const pm of pageMatch) {
+        const num = parseInt(pm.match(/index_(\d+)/)?.[1] || '1');
+        if (num > maxPage) maxPage = num;
+      }
+    }
+    
+    // 提取当前页的章节
+    const extractChapters = (pageHtml: string) => {
+      const chapterPattern = new RegExp(`href="(\\/${bookId.replace('_', '_')}\\/\\d+\\.html)"[^>]*>([^<]+)<\\/a>`, 'gi');
+      let match;
+      while ((match = chapterPattern.exec(pageHtml)) !== null) {
+        const href = match[1];
+        const title = match[2].trim();
+        if (title && !chapterSeen.has(href)) {
+          chapterSeen.add(href);
+          chapters.push({
+            id: href.match(/\/(\d+)\.html/)?.[1] || '',
+            title,
+            url: `${baseUrl}${href}`,
+          });
+        }
+      }
+    };
+    
+    // 提取第一页
+    extractChapters(html);
+    
+    // 获取其他页
+    if (maxPage > 1) {
+      const pagePromises = [];
+      for (let i = 2; i <= Math.min(maxPage, 50); i++) { // 限制最多50页
+        const pageUrl = `${baseUrl}/${bookId}/index_${i}.html`;
+        pagePromises.push(safeFetch(pageUrl));
+      }
+      
+      const pageResults = await Promise.allSettled(pagePromises);
+      for (const result of pageResults) {
+        if (result.status === 'fulfilled' && result.value) {
+          extractChapters(result.value);
+        }
       }
     }
   }
@@ -348,24 +373,23 @@ export async function getBookDetail(bookUrl: string, sourceUrl?: string): Promis
 
 // ==================== 章节内容 ====================
 
-export async function getChapterContent(chapterUrl: string): Promise<string | null> {
-  if (!chapterUrl) return null;
-
-  const html = await safeFetch(chapterUrl);
-  if (!html) return null;
-
-  // 内容在 #outer div 中（display: none），但文本仍在 HTML 中
-  // 直接用正则提取中文文本块
+// 提取单页内容
+function extractPageContent(html: string): string {
   const root = parse(html);
-
-  // 尝试从 outer div 提取
-  const outerEl = root.querySelector('#outer');
-  if (outerEl) {
-    let text = outerEl.innerHTML;
+  
+  // 优先从 article 标签提取内容
+  const articleEl = root.querySelector('article');
+  if (articleEl) {
+    let text = articleEl.innerHTML;
+    // 移除分页信息
+    text = text.replace(/第\(\d+\/\d+\)页/g, '');
     // 移除标题行
-    text = text.replace(/<p>[^<]*<\/p>/gi, '');
+    text = text.replace(/<h\d[^>]*>.*?<\/h\d>/gi, '');
     // <br> 转换为换行
     text = text.replace(/<br\s*\/?>/gi, '\n');
+    // <p> 转换为换行
+    text = text.replace(/<p[^>]*>/gi, '\n');
+    text = text.replace(/<\/p>/gi, '');
     // 移除所有HTML标签
     text = text.replace(/<[^>]+>/g, '');
     // 解码HTML实体
@@ -378,29 +402,128 @@ export async function getChapterContent(chapterUrl: string): Promise<string | nu
     // 清理多余空行
     text = text.replace(/\n{3,}/g, '\n\n').trim();
 
+    // 过滤广告和导航文本
+    const lines = text.split('\n').filter(line => {
+      const trimmed = line.trim();
+      return trimmed.length > 0 &&
+        !trimmed.includes('笔趣阁') &&
+        !trimmed.includes('本站') &&
+        !trimmed.includes('侵权') &&
+        !trimmed.includes('删除') &&
+        !trimmed.includes('努力打造') &&
+        !trimmed.includes('请大家告诉') &&
+        !trimmed.includes('手机阅读') &&
+        !trimmed.includes('返回目录') &&
+        !trimmed.includes('上一章') &&
+        !trimmed.includes('下一章') &&
+        !trimmed.includes('字体') &&
+        !trimmed.includes('大中小') &&
+        !trimmed.match(/^\s*$/) &&
+        trimmed.length > 3;
+    });
+
+    return lines.join('\n');
+  }
+
+  // 备选：从 #outer div 提取
+  const outerEl = root.querySelector('#outer');
+  if (outerEl) {
+    let text = outerEl.innerHTML;
+    text = text.replace(/<br\s*\/?>/gi, '\n');
+    text = text.replace(/<[^>]+>/g, '');
+    text = text.replace(/&nbsp;/g, ' ')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#\d+;/g, '');
+    text = text.replace(/\n{3,}/g, '\n\n').trim();
+
     if (text.length > 50) return text;
   }
 
-  // 备选：直接从页面提取中文文本块
-  const chineseBlocks = html.match(/[一-鿿，。！？：；""''（）【】、\n\r ]{20,}/g) || [];
-  // 过滤掉导航和广告文本
-  const contentBlocks = chineseBlocks.filter(block =>
-    !block.includes('笔趣阁') &&
-    !block.includes('本站') &&
-    !block.includes('侵权') &&
-    !block.includes('删除') &&
-    !block.includes('努力打造') &&
-    !block.includes('请大家告诉') &&
-    !block.includes('手机阅读') &&
-    !block.includes('返回目录') &&
-    block.length > 30
-  );
+  return '';
+}
 
-  if (contentBlocks.length > 0) {
-    return contentBlocks.join('\n\n').trim();
+// 查找下一页URL
+function findNextPageUrl(html: string, currentUrl: string): string | null {
+  const root = parse(html);
+  const links = root.querySelectorAll('a');
+  
+  // 提取当前章节ID
+  const currentChapterId = currentUrl.match(/\/(\d+)\.html/)?.[1];
+  if (!currentChapterId) return null;
+  
+  for (const a of links) {
+    const linkText = a.text.trim();
+    const href = a.getAttribute('href') || '';
+    
+    // "下一章"链接指向同章节的下一页
+    if (linkText === '下一章') {
+      // 检查是否是同章节的下一页（格式: /bookId/chapterId_page.html）
+      const match = href.match(new RegExp(`/(\\d+_\\d+)/${currentChapterId}(?:_(\\d+))?\\.html`));
+      if (match) {
+        const bookId = match[1];
+        const currentPage = match[2] ? parseInt(match[2]) : 1;
+        const nextPage = currentPage + 1;
+        const baseUrl = new URL(currentUrl).origin;
+        return `${baseUrl}/${bookId}/${currentChapterId}_${nextPage}.html`;
+      }
+    }
+  }
+  
+  return null;
+}
+
+export async function getChapterContent(chapterUrl: string): Promise<string | null> {
+  if (!chapterUrl) return null;
+
+  let allContent = '';
+  let currentUrl: string | null = chapterUrl;
+  let pageNum = 1;
+  const maxPages = 10; // 防止无限循环
+  const visited = new Set<string>();
+
+  while (currentUrl && pageNum <= maxPages && !visited.has(currentUrl)) {
+    visited.add(currentUrl);
+    
+    const html = await safeFetch(currentUrl);
+    if (!html) break;
+
+    const pageContent = extractPageContent(html);
+    if (pageContent) {
+      allContent += (allContent ? '\n\n' : '') + pageContent;
+    }
+
+    // 查找下一页
+    currentUrl = findNextPageUrl(html, currentUrl);
+    pageNum++;
   }
 
-  return null;
+  // 最后备选：从页面提取中文文本块
+  if (allContent.length < 50) {
+    const html = await safeFetch(chapterUrl);
+    if (html) {
+      const chineseBlocks = html.match(/[一-鿿，。！？：；""''（）【】、\n\r ]{50,}/g) || [];
+      const contentBlocks = chineseBlocks.filter(block =>
+        !block.includes('笔趣阁') &&
+        !block.includes('本站') &&
+        !block.includes('侵权') &&
+        !block.includes('删除') &&
+        !block.includes('努力打造') &&
+        !block.includes('请大家告诉') &&
+        !block.includes('手机阅读') &&
+        !block.includes('返回目录') &&
+        block.length > 50
+      );
+
+      if (contentBlocks.length > 0) {
+        allContent = contentBlocks.join('\n\n').trim();
+      }
+    }
+  }
+
+  return allContent || null;
 }
 
 // ==================== 后备方案 ====================

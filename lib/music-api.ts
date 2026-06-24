@@ -1,4 +1,4 @@
-import { Song, PlayUrl, Lyric, SearchParams, SearchResult, UserChannel } from '@/types/music';
+import { Song, PlayUrl, Lyric, SearchParams, SearchResult, UserChannel, QualityLevel } from '@/types/music';
 import { searchKuwo, getKuwoUrl, getKuwoLyric } from './kuwo';
 import { searchNetease, getNeteaseUrl, getNeteaseLyric } from './netease';
 import { searchMusicBox, getMusicBoxUrl, getMusicBoxLyric } from './musicbox';
@@ -199,7 +199,7 @@ export async function searchMusic(params: SearchParams): Promise<SearchResult> {
   return { songs: [], total: 0, page };
 }
 
-export async function getPlayUrl(musicId: string, source: string): Promise<PlayUrl> {
+export async function getPlayUrl(musicId: string, source: string, musicU?: string, quality: QualityLevel = 'exhigh'): Promise<PlayUrl> {
   // Priority 1: User custom channels
   const userChannels = getUserChannels().filter(ch => ch.enabled);
   if (userChannels.length > 0) {
@@ -219,10 +219,12 @@ export async function getPlayUrl(musicId: string, source: string): Promise<PlayU
   }
 
   // Priority 2: Netease API (new)
-  if (musicId.startsWith('netease_')) {
+  if (musicId.startsWith('netease_') || musicId.startsWith('musicbox_')) {
     try {
-      const musicU = getNeteaseMusicU();
-      const result = await getNeteasePlayUrl(musicId, 'standard', musicU);
+      const effectiveMusicU = musicU || getNeteaseMusicU();
+      // Convert musicbox_ prefix to netease_ for API call
+      const neteaseId = musicId.startsWith('musicbox_') ? musicId.replace('musicbox_', 'netease_') : musicId;
+      const result = await getNeteasePlayUrl(neteaseId, quality, effectiveMusicU);
       if (result && result.url) {
         const isValid = await validateUrl(result.url);
         if (isValid) {
